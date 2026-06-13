@@ -49,6 +49,7 @@
   .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
   input[type=file]{font-size:13px;padding:8px}
+  input[readonly]{background:#f0ede7;color:#555;font-family:'Courier New',monospace;font-size:13px}
 
   .langtabs{display:flex;margin-bottom:20px;border:1px solid var(--line);width:fit-content}
   .langtabs button{font-family:Georgia,serif;font-size:12px;letter-spacing:.1em;
@@ -138,7 +139,7 @@
 
     <div class="field">
       <label>Artist / Художник</label>
-      <input id="artist" oninput="render()" placeholder="Svitlana Dudenko">
+      <input id="artist" oninput="onArtist()" placeholder="Svitlana Dudenko">
     </div>
     <div class="field">
       <label>Title of artwork / Назва твору</label>
@@ -179,20 +180,46 @@
         <input id="area" oninput="render()" placeholder="280x500 mm">
       </div>
     </div>
-    <div class="field">
-      <label>Edition ID / ID видання</label>
-      <input id="editionId" oninput="render()" placeholder="sd-2026-001-EDH-50x70-15">
-    </div>
-    <div class="two">
+    <h2 class="sec" style="margin-top:24px">Edition ID (auto-built)</h2>
+    <div class="three">
       <div class="field">
-        <label>Edition no. / Номер</label>
-        <input id="editionNo" oninput="render()" placeholder="1">
+        <label>Initials / Ініціали</label>
+        <input id="initials" oninput="render()" placeholder="sd">
+      </div>
+      <div class="field">
+        <label>Artwork no. / № твору</label>
+        <input id="artworkNo" oninput="render()" placeholder="001">
+      </div>
+      <div class="field">
+        <label>Edition code / Код</label>
+        <input id="editionCode" oninput="render()" value="EDH" placeholder="EDH">
+      </div>
+    </div>
+    <div class="three">
+      <div class="field">
+        <label>Size cm / Розмір см</label>
+        <input id="sizeCm" oninput="render()" placeholder="50x70">
       </div>
       <div class="field">
         <label>Edition size / Тираж</label>
         <input id="editionTotal" oninput="render()" placeholder="15">
       </div>
+      <div class="field">
+        <label>Copy no. / № копії</label>
+        <input id="editionNo" oninput="render()" placeholder="1">
+      </div>
     </div>
+    <div class="two">
+      <div class="field">
+        <label>Edition ID / ID видання (auto)</label>
+        <input id="editionId" readonly placeholder="sd-2026-001-EDH-50x70-15">
+      </div>
+      <div class="field">
+        <label>Certificate no. / № сертифіката (auto)</label>
+        <input id="certNo" readonly placeholder="…-1">
+      </div>
+    </div>
+
     <div class="field">
       <label>Gallery / Галерея</label>
       <input id="gallery" oninput="render()" value="Smalta Art Gallery">
@@ -357,20 +384,37 @@ function sigHash(str){
 }
 
 function collect(){
-  return {
+  const d = {
     ar:$('artist').value.trim(), ti:$('title').value.trim(), yr:$('year').value.trim(),
     te:$('technique').value.trim(), su:$('support').value.trim(), ss:$('sheet').value.trim(),
-    aa:$('area').value.trim(), se:$('status').value, ei:$('editionId').value.trim(),
-    en:$('editionNo').value.trim(), et:$('editionTotal').value.trim(),
-    gl:$('gallery').value.trim(),
-    is:$('issued').value, ln:LANG
+    aa:$('area').value.trim(), se:$('status').value,
+    ini:$('initials').value.trim(), no:$('artworkNo').value.trim(),
+    code:$('editionCode').value.trim(), cm:$('sizeCm').value.trim(),
+    et:$('editionTotal').value.trim(), en:$('editionNo').value.trim(),
+    gl:$('gallery').value.trim(), is:$('issued').value, ln:LANG
   };
+  d.ei = buildEditionId(d);   // initials-year-no-code-sizecm-editionsize
+  return d;
 }
-// Full certificate id, e.g. sd-2026-001-EDH-50x70-15-1
+// Edition ID = sd-2026-001-EDH-50x70-15  (only non-empty parts, in order)
+function buildEditionId(d){
+  return [d.ini, d.yr, d.no, d.code, d.cm, d.et]
+    .map(s => (s||'').trim()).filter(Boolean).join('-');
+}
+// Full certificate id = Edition ID + copy number, e.g. sd-2026-001-EDH-50x70-15-1
 function certId(d){
   if(d.ei) return d.ei + (d.en ? '-'+d.en : '');
   const base=(d.ar+d.ti+d.yr).toUpperCase().replace(/[^A-ZА-Я0-9]/g,'');
   return 'COA-'+sigHash(base).toUpperCase();
+}
+function deriveInitials(name){
+  return name.trim().split(/\s+/).filter(Boolean).map(w=>w[0]||'').join('').toLowerCase().slice(0,4);
+}
+// auto-fill initials from the artist name, but only while the user hasn't set them
+function onArtist(){
+  const ini = $('initials');
+  if(!ini.value.trim()) ini.value = deriveInitials($('artist').value);
+  render();
 }
 function editionLabel(d){ return (d.en||'—') + (d.et ? ' / '+d.et : ''); }
 
@@ -384,6 +428,10 @@ function buildLink(d){
 let qr;
 function render(){
   const d = collect(), t = T[LANG], id = certId(d);
+
+  // auto-built identifiers shown back in the form
+  $('editionId').value = d.ei;
+  $('certNo').value = id;
 
   // labels
   $('p1-title').textContent = t.coa;
