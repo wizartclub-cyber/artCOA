@@ -253,7 +253,7 @@
     </div>
     <div class="field">
       <label data-i18n="lDate">Date (optional)</label>
-      <input id="issued" type="text" oninput="render()" data-i18n-ph="phDate" placeholder="YYYY-MM-DD">
+      <input id="issued" type="text" oninput="render()" data-i18n-ph="phDate" placeholder="dd.mm.yyyy">
     </div>
 
     <h2 class="sec" style="margin-top:28px" data-i18n="secPage2">Page 2 — Artwork</h2>
@@ -418,7 +418,7 @@ const FORM_I18N = {
        lGallery:"Gallery", lDate:"Date (optional)", lImage:"Artwork image", lSecret:"Your secret signature key",
        lBaseUrl:"Verification page base URL", btnSave:"Save as PDF", btnSend:"Send PDF", btnCopy:"Copy verify link",
        phSecret:"keep private — same key verifies all your certificates",
-       phDate:"YYYY-MM-DD", btnChoose:"Choose file", phNoFile:"No file selected", helpLink:"Help / How it works",
+       phDate:"dd.mm.yyyy", btnChoose:"Choose file", phNoFile:"No file selected", helpLink:"Help / How it works",
        tag:"Two-page Certificate of Authenticity · EN / UA / SK · PDF + QR verification" },
   uk:{ secDetails:"Дані сертифіката", secEdition:"ID видання (авто)",
        secPage2:"Сторінка 2 — Твір", secVerify:"Перевірка", secPreview:"Перегляд · A4 ×2",
@@ -429,7 +429,7 @@ const FORM_I18N = {
        lGallery:"Галерея", lDate:"Дата (необов'язково)", lImage:"Зображення твору", lSecret:"Секретний ключ підпису",
        lBaseUrl:"Базова URL сторінки перевірки", btnSave:"Зберегти як PDF", btnSend:"Надіслати PDF", btnCopy:"Копіювати лінк",
        phSecret:"тримайте в таємниці — один ключ підтверджує всі ваші сертифікати",
-       phDate:"РРРР-ММ-ДД", btnChoose:"Вибрати файл", phNoFile:"Файл не вибрано", helpLink:"Довідка / Як це працює",
+       phDate:"дд.мм.рррр", btnChoose:"Вибрати файл", phNoFile:"Файл не вибрано", helpLink:"Довідка / Як це працює",
        tag:"Двосторінковий сертифікат автентичності · EN / UA / SK · PDF + QR" },
   sk:{ secDetails:"Údaje certifikátu", secEdition:"ID edície (auto)",
        secPage2:"Strana 2 — Dielo", secVerify:"Overenie", secPreview:"Náhľad · A4 ×2",
@@ -440,7 +440,7 @@ const FORM_I18N = {
        lGallery:"Galéria", lDate:"Dátum (voliteľné)", lImage:"Obraz diela", lSecret:"Váš tajný podpisový kľúč",
        lBaseUrl:"Základná URL overovacej stránky", btnSave:"Uložiť ako PDF", btnSend:"Odoslať PDF", btnCopy:"Kopírovať odkaz",
        phSecret:"uchovajte v tajnosti — jeden kľúč overuje všetky vaše certifikáty",
-       phDate:"RRRR-MM-DD", btnChoose:"Vybrať súbor", phNoFile:"Žiadny súbor", helpLink:"Pomoc / Ako to funguje",
+       phDate:"dd.mm.rrrr", btnChoose:"Vybrať súbor", phNoFile:"Žiadny súbor", helpLink:"Pomoc / Ako to funguje",
        tag:"Dvojstranový certifikát pravosti · EN / UA / SK · PDF + QR" }
 };
 // Legally-correct copyright footer (localized). Gallery name links to the site.
@@ -716,7 +716,14 @@ function acceptConsent(){ if(window.ArtCOAAnalytics) ArtCOAAnalytics.setConsent(
 function declineConsent(){ if(window.ArtCOAAnalytics) ArtCOAAnalytics.setConsent(false); hideConsent(); }
 function openPrivacy(){ consentText(); showConsent(); }
 
+// today's date in European format dd.mm.yyyy
+function todayStr(){
+  const d = new Date(), p = n => String(n).padStart(2,'0');
+  return p(d.getDate()) + '.' + p(d.getMonth()+1) + '.' + d.getFullYear();
+}
+
 // defaults
+$('issued').value = todayStr();
 applyFormLang();
 render();
 consentText();
