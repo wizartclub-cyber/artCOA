@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArtCOA — Usage Dashboard</title>
+<link rel="icon" type="image/jpeg" href="icon.jpg">
+<style>
+  :root{--ink:#1a1714;--paper:#fbfaf7;--stone:#6b645b;--line:#d8d3c9;--seal:#7c2d2d;--ok:#2f5d3a}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,Segoe UI,Roboto,Georgia,serif;background:var(--paper);color:var(--ink);line-height:1.5}
+  .wrap{max-width:1280px;margin:0 auto;padding:28px 22px 80px}
+  h1{font-size:24px;font-weight:600;letter-spacing:.02em}
+  .sub{color:var(--stone);font-size:13px;margin-top:4px}
+  .note{background:#f3f1ec;border-left:3px solid var(--seal);padding:12px 16px;
+        font-size:13px;color:#3a342d;margin:20px 0;border-radius:0 4px 4px 0}
+  .cards{display:flex;gap:16px;flex-wrap:wrap;margin:22px 0}
+  .card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:18px 22px;min-width:150px}
+  .card .n{font-size:30px;font-weight:700}
+  .card .l{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--stone);margin-top:2px}
+  .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:18px 0}
+  .btn{font:inherit;font-size:13px;background:var(--ink);color:#fff;border:none;
+       padding:9px 16px;border-radius:6px;cursor:pointer}
+  .btn:hover{background:var(--seal)}
+  .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .btn.ghost:hover{background:#f3f1ec}
+  input[type=search]{font:inherit;font-size:13px;padding:9px 12px;border:1px solid var(--line);
+       border-radius:6px;min-width:220px;flex:1}
+  .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:8px;background:#fff}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;white-space:nowrap}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line)}
+  th{position:sticky;top:0;background:#f3f1ec;font-size:11px;letter-spacing:.06em;
+     text-transform:uppercase;color:var(--stone);font-weight:600;cursor:pointer}
+  tr:hover td{background:#faf8f4}
+  td.ua{max-width:240px;overflow:hidden;text-overflow:ellipsis}
+  .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:#eee;color:#333}
+  .tag.save{background:#e7efe9;color:var(--ok)}
+  .tag.send{background:#eef0f5;color:#2d3a6b}
+  .empty{padding:50px;text-align:center;color:var(--stone)}
+  a{color:var(--seal)}
+  code{background:#f3f1ec;padding:1px 5px;border-radius:3px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ArtCOA — Usage Dashboard</h1>
+  <div class="sub">Certificate generations, devices and IP/location.</div>
+
+  <div class="note" id="srcnote"></div>
+
+  <div class="cards">
+    <div class="card"><div class="n" id="c-total">0</div><div class="l">Total uses</div></div>
+    <div class="card"><div class="n" id="c-save">0</div><div class="l">Saved</div></div>
+    <div class="card"><div class="n" id="c-send">0</div><div class="l">Sent</div></div>
+    <div class="card"><div class="n" id="c-visitors">0</div><div class="l">Unique devices</div></div>
+    <div class="card"><div class="n" id="c-countries">0</div><div class="l">Countries</div></div>
+  </div>
+
+  <div class="bar">
+    <input type="search" id="q" placeholder="Filter by artist, title, IP, country, serial…">
+    <button class="btn" onclick="exportCSV()">Export CSV</button>
+    <button class="btn ghost" onclick="reload()">Reload</button>
+    <button class="btn ghost" onclick="clearLocal()">Clear local log</button>
+  </div>
+
+  <div class="tablewrap">
+    <table id="tbl">
+      <thead><tr>
+        <th data-k="ts">Time</th>
+        <th data-k="action">Action</th>
+        <th data-k="serial">Serial</th>
+        <th data-k="artist">Artist</th>
+        <th data-k="title">Title</th>
+        <th data-k="year">Year</th>
+        <th data-k="type">Type</th>
+        <th data-k="owner">Owner</th>
+        <th data-k="lang">Lang</th>
+        <th data-k="ip">IP</th>
+        <th data-k="country">Country</th>
+        <th data-k="city">City</th>
+        <th data-k="org">ISP / Org</th>
+        <th data-k="dev">Device</th>
+        <th data-k="ua">User agent</th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="analytics.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+let ROWS = [];
+let sortKey = 'ts', sortDir = -1;
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function dev(r){ const d=r.device||{}; return [d.platform, d.screen, d.timezone].filter(Boolean).join(' · '); }
+function fmt(ts){ try{ return new Date(ts).toLocaleString(); }catch(e){ return ts||''; } }
+
+function load(){
+  ROWS = (window.ArtCOAAnalytics ? ArtCOAAnalytics.all() : []).slice();
+  const ep = window.ArtCOAAnalytics ? ArtCOAAnalytics.endpoint() : '';
+  $('srcnote').innerHTML = ep
+    ? 'Showing this device’s local log. The full central table of <b>all users</b> lives in your Google Sheet backend (endpoint configured). Open the Sheet to see everyone.'
+    : 'No central backend configured yet — this shows only events from <b>this browser/device</b>. To collect <b>all users</b> in one table, connect the Google Sheet backend (see <code>backend/apps-script.gs</code> and set <code>ANALYTICS_ENDPOINT</code> in <code>analytics.js</code>).';
+}
+
+function stats(){
+  $('c-total').textContent   = ROWS.length;
+  $('c-save').textContent    = ROWS.filter(r=>r.action==='save').length;
+  $('c-send').textContent    = ROWS.filter(r=>r.action==='send').length;
+  $('c-visitors').textContent= new Set(ROWS.map(r=>r.visitorId).filter(Boolean)).size;
+  $('c-countries').textContent= new Set(ROWS.map(r=>r.country).filter(Boolean)).size;
+}
+
+function filtered(){
+  const q = $('q').value.trim().toLowerCase();
+  let list = ROWS;
+  if(q){
+    list = list.filter(r => [r.artist,r.title,r.serial,r.ip,r.country,r.city,r.org,r.owner,r.type]
+      .some(v => String(v||'').toLowerCase().includes(q)));
+  }
+  list = list.slice().sort((a,b)=>{
+    let x=a[sortKey], y=b[sortKey];
+    if(sortKey==='dev'){ x=dev(a); y=dev(b); }
+    if(sortKey==='ua'){ x=(a.device||{}).userAgent; y=(b.device||{}).userAgent; }
+    x=String(x||''); y=String(y||'');
+    return x<y?-1*sortDir : x>y?1*sortDir : 0;
+  });
+  return list;
+}
+
+function render(){
+  stats();
+  const list = filtered();
+  if(!list.length){ $('tb').innerHTML = '<tr><td class="empty" colspan="15">No events yet.</td></tr>'; return; }
+  $('tb').innerHTML = list.map(r=>`<tr>
+    <td>${esc(fmt(r.ts))}</td>
+    <td><span class="tag ${esc(r.action)}">${esc(r.action)}</span></td>
+    <td>${esc(r.serial)}</td>
+    <td>${esc(r.artist)}</td>
+    <td>${esc(r.title)}</td>
+    <td>${esc(r.year)}</td>
+    <td>${esc(r.type)}</td>
+    <td>${esc(r.owner)}</td>
+    <td>${esc(r.lang)}</td>
+    <td>${esc(r.ip)}</td>
+    <td>${esc(r.country)}</td>
+    <td>${esc(r.city)}</td>
+    <td>${esc(r.org)}</td>
+    <td>${esc(dev(r))}</td>
+    <td class="ua" title="${esc((r.device||{}).userAgent)}">${esc((r.device||{}).userAgent)}</td>
+  </tr>`).join('');
+}
+
+function reload(){ load(); render(); }
+function clearLocal(){
+  if(confirm('Delete the local event log on THIS device? (The Google Sheet, if connected, is not affected.)')){
+    ArtCOAAnalytics.clear(); reload();
+  }
+}
+
+function exportCSV(){
+  const cols = ['ts','action','serial','artist','title','year','type','medium','dimensions',
+    'edition','owner','issued','lang','ip','city','region','country','org','visitorId'];
+  const devCols = ['userAgent','platform','language','screen','viewport','dpr','timezone','referrer'];
+  const head = cols.concat(devCols.map(c=>'device_'+c));
+  const q = s => '"' + String(s==null?'':s).replace(/"/g,'""') + '"';
+  const lines = [head.map(q).join(',')];
+  filtered().forEach(r=>{
+    const d = r.device||{};
+    lines.push(cols.map(c=>q(r[c])).concat(devCols.map(c=>q(d[c]))).join(','));
+  });
+  const blob = new Blob([lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'artcoa-usage.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+
+document.querySelectorAll('th[data-k]').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const k = th.dataset.k;
+    if(sortKey===k) sortDir*=-1; else { sortKey=k; sortDir=1; }
+    render();
+  });
+});
+$('q').addEventListener('input', render);
+
+load(); render();
+</script>
+</body>
+</html>

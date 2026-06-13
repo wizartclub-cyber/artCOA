@@ -15,6 +15,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="analytics.js"></script>
 <style>
   :root{
     --ink:#1a1714;        /* near-black warm */
@@ -418,11 +419,20 @@ function downloadBlob(blob, filename){
   setTimeout(()=>URL.revokeObjectURL(url), 4000);
 }
 
+// Record a certificate use (fields + device + IP) to local log + backend.
+function trackUse(action){
+  try{
+    const d = collect();
+    if(window.ArtCOAAnalytics) ArtCOAAnalytics.track({...d, sn:serial(d)}, action);
+  }catch(e){ /* analytics must never block PDF generation */ }
+}
+
 // Save → download the PDF.
 function makePDF(){
   return withPdfBtn('pdfbtn', async()=>{
     const {blob, filename} = await generatePdfFile();
     downloadBlob(blob, filename);
+    trackUse('save');
   });
 }
 
@@ -440,7 +450,9 @@ function sendPDF(){
           text:'Certificate of Authenticity ('+filename.replace(/\.pdf$/,'')+')'
         });
       }catch(e){ if(e.name !== 'AbortError') throw e; }  // user cancelled the sheet — not an error
+      trackUse('send');
     } else {
+      trackUse('send');
       downloadBlob(blob, filename);
       const d = collect(), link = buildLink(d);
       const subject = encodeURIComponent('Certificate of Authenticity — ' + (d.ti || ''));
