@@ -19,7 +19,7 @@
   // ── CONFIG ────────────────────────────────────────────────────────────────
   // Paste your Google Apps Script Web App URL here to enable the central table.
   // Leave '' to log locally only (visible in admin.html on THIS device/browser).
-  var ANALYTICS_ENDPOINT = '';
+  var ANALYTICS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzG71Vmg633_8_wM7i9QcIGzwb8Zg-_1LLWhrNytw4UISW9bHwLrZyo02-MEP_CRiNkwQ/exec';
 
   // Public IP + geo lookup (no API key, CORS-enabled). Swap if you prefer.
   var IP_LOOKUP_URL = 'https://ipwho.is/';
@@ -113,21 +113,25 @@
     if (consent() !== 'granted') return Promise.resolve(false); // no consent → collect nothing
     cert = cert || {};
     var base = {
-      ts:         new Date().toISOString(),
-      action:     action || 'generate',
-      visitorId:  visitorId(),
-      serial:     cert.sn || '',
-      artist:     cert.ar || '',
-      title:      cert.ti || '',
-      year:       cert.yr || '',
-      type:       cert.ty || '',
-      medium:     cert.me || '',
-      dimensions: cert.di || '',
-      edition:    cert.ed || '',
-      owner:      cert.ow || '',
-      issued:     cert.is || '',
-      lang:       cert.ln || '',
-      device:     deviceInfo()
+      ts:           new Date().toISOString(),
+      action:       action || 'generate',
+      visitorId:    visitorId(),
+      serial:       cert.sn || '',
+      artist:       cert.ar || '',
+      title:        cert.ti || '',
+      year:         cert.yr || '',
+      technique:    cert.te || '',
+      support:      cert.su || '',
+      sheet:        cert.ss || '',
+      area:         cert.aa || '',
+      status:       cert.se || '',
+      editionId:    cert.ei || '',
+      editionNo:    cert.en || '',
+      editionTotal: cert.et || '',
+      gallery:      cert.gl || '',
+      issued:       cert.is || '',
+      lang:         cert.ln || '',
+      device:       deviceInfo()
     };
     return getNetwork().then(function (net) {
       var ev = Object.assign({}, base, net);

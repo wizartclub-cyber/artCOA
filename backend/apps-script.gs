@@ -22,8 +22,9 @@
 var SHEET_NAME = 'Certificates';
 
 var HEADERS = [
-  'Timestamp', 'Action', 'Serial', 'Artist', 'Title', 'Year', 'Type', 'Medium',
-  'Dimensions', 'Edition', 'Owner', 'Issued', 'Lang',
+  'Timestamp', 'Action', 'Serial', 'Artist', 'Title', 'Year', 'Technique', 'Support',
+  'Sheet size', 'Artwork area', 'Status Edition', 'Edition ID', 'Edition no', 'Edition total',
+  'Gallery', 'Issued', 'Lang',
   'IP', 'City', 'Region', 'Country', 'ISP/Org', 'VisitorID',
   'UserAgent', 'Platform', 'Language', 'Screen', 'Viewport', 'DPR', 'Timezone', 'Referrer'
 ];
@@ -31,8 +32,14 @@ var HEADERS = [
 function getSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(HEADERS);
+  // Ensure row 1 always matches the current HEADERS (auto-fixes after a schema change).
+  var needHeader = sheet.getLastRow() === 0;
+  if (!needHeader) {
+    var first = sheet.getRange(1, 1, 1, HEADERS.length).getValues()[0];
+    if (first.join('') !== HEADERS.join('')) needHeader = true;
+  }
+  if (needHeader) {
+    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
     sheet.setFrozenRows(1);
   }
   return sheet;
@@ -48,8 +55,9 @@ function doPost(e) {
     var dev = d.device || {};
     getSheet_().appendRow([
       d.ts || '', d.action || '', d.serial || '', d.artist || '', d.title || '',
-      d.year || '', d.type || '', d.medium || '', d.dimensions || '', d.edition || '',
-      d.owner || '', d.issued || '', d.lang || '',
+      d.year || '', d.technique || '', d.support || '', d.sheet || '', d.area || '',
+      d.status || '', d.editionId || '', d.editionNo || '', d.editionTotal || '',
+      d.gallery || '', d.issued || '', d.lang || '',
       d.ip || '', d.city || '', d.region || '', d.country || '', d.org || '', d.visitorId || '',
       dev.userAgent || '', dev.platform || '', dev.language || '', dev.screen || '',
       dev.viewport || '', dev.dpr || '', dev.timezone || '', dev.referrer || ''

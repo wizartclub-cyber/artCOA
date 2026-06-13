@@ -78,8 +78,10 @@ const T = {
     invalid:"Signature does not match", invalidSub:"This certificate may have been altered or the key is wrong.",
     nodata:"No certificate data found in this link.",
     eyebrow:"Certificate of Authenticity",
-    artist:"Artist",year:"Year",type:"Type",medium:"Medium",dims:"Dimensions",
-    edition:"Edition",owner:"Owner",issued:"Date issued",serial:"Serial",
+    artist:"Artist",year:"Year",technique:"Technique",support:"Support",
+    sheet:"Sheet size",area:"Artwork area",status:"Status Edition",
+    editionId:"Edition ID",editionNo:"Edition number",gallery:"Gallery",
+    issued:"Date issued",serial:"Serial",
     keylabel:"Artist signature key",
     keyhint:"Only the issuing artist knows this. Enter it to confirm the certificate is genuine and unaltered.",
     disc:"This Certificate of Authenticity confirms the authorship and identification of the artwork based on information provided by the artist or authorised representative. It does not automatically transfer copyright or ownership rights unless explicitly stated in a separate agreement."
@@ -90,8 +92,10 @@ const T = {
     invalid:"Підпис не співпадає", invalidSub:"Сертифікат міг бути змінений або введено невірний ключ.",
     nodata:"У цьому посиланні немає даних сертифіката.",
     eyebrow:"Сертифікат автентичності",
-    artist:"Художник",year:"Рік",type:"Тип",medium:"Техніка",dims:"Розміри",
-    edition:"Тираж",owner:"Власник",issued:"Дата видачі",serial:"Номер",
+    artist:"Художник",year:"Рік",technique:"Техніка",support:"Основа",
+    sheet:"Розмір аркуша",area:"Розмір зображення",status:"Статус видання",
+    editionId:"ID видання",editionNo:"Номер у тиражі",gallery:"Галерея",
+    issued:"Дата видачі",serial:"Номер",
     keylabel:"Ключ підпису художника",
     keyhint:"Цей ключ знає лише художник-емітент. Введіть його, щоб підтвердити справжність сертифіката.",
     disc:"Цей сертифікат автентичності підтверджує авторство та ідентифікацію твору на підставі інформації, наданої художником або уповноваженим представником. Сертифікат не передає автоматично авторські права або право власності, якщо це прямо не передбачено окремим договором."
@@ -147,11 +151,14 @@ function render(d, lang){
       <div class="rule"></div>
       ${rowHTML(t.artist,d.ar)}
       ${rowHTML(t.year,d.yr)}
-      ${rowHTML(t.type,d.ty)}
-      ${rowHTML(t.medium,d.me)}
-      ${rowHTML(t.dims,d.di)}
-      ${rowHTML(t.edition,d.ed)}
-      ${rowHTML(t.owner,d.ow)}
+      ${rowHTML(t.technique,d.te)}
+      ${rowHTML(t.support,d.su)}
+      ${rowHTML(t.sheet,d.ss)}
+      ${rowHTML(t.area,d.aa)}
+      ${rowHTML(t.status,d.se)}
+      ${rowHTML(t.editionId,d.ei)}
+      ${rowHTML(t.editionNo, d.en ? (d.en + (d.et ? ' / '+d.et : '')) : '')}
+      ${rowHTML(t.gallery,d.gl)}
       ${rowHTML(t.issued,d.is)}
       <div class="rule"></div>
       <div class="serial">${esc(d.sn||'')}</div>

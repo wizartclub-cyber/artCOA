@@ -72,8 +72,9 @@
         <th data-k="artist">Artist</th>
         <th data-k="title">Title</th>
         <th data-k="year">Year</th>
-        <th data-k="type">Type</th>
-        <th data-k="owner">Owner</th>
+        <th data-k="status">Status</th>
+        <th data-k="editionId">Edition ID</th>
+        <th data-k="editionNo">No.</th>
         <th data-k="lang">Lang</th>
         <th data-k="ip">IP</th>
         <th data-k="country">Country</th>
@@ -117,7 +118,7 @@ function filtered(){
   const q = $('q').value.trim().toLowerCase();
   let list = ROWS;
   if(q){
-    list = list.filter(r => [r.artist,r.title,r.serial,r.ip,r.country,r.city,r.org,r.owner,r.type]
+    list = list.filter(r => [r.artist,r.title,r.serial,r.ip,r.country,r.city,r.org,r.status,r.editionId]
       .some(v => String(v||'').toLowerCase().includes(q)));
   }
   list = list.slice().sort((a,b)=>{
@@ -133,7 +134,7 @@ function filtered(){
 function render(){
   stats();
   const list = filtered();
-  if(!list.length){ $('tb').innerHTML = '<tr><td class="empty" colspan="15">No events yet.</td></tr>'; return; }
+  if(!list.length){ $('tb').innerHTML = '<tr><td class="empty" colspan="16">No events yet.</td></tr>'; return; }
   $('tb').innerHTML = list.map(r=>`<tr>
     <td>${esc(fmt(r.ts))}</td>
     <td><span class="tag ${esc(r.action)}">${esc(r.action)}</span></td>
@@ -141,8 +142,9 @@ function render(){
     <td>${esc(r.artist)}</td>
     <td>${esc(r.title)}</td>
     <td>${esc(r.year)}</td>
-    <td>${esc(r.type)}</td>
-    <td>${esc(r.owner)}</td>
+    <td>${esc(r.status)}</td>
+    <td>${esc(r.editionId)}</td>
+    <td>${esc(r.editionNo)}${r.editionTotal?(' / '+esc(r.editionTotal)):''}</td>
     <td>${esc(r.lang)}</td>
     <td>${esc(r.ip)}</td>
     <td>${esc(r.country)}</td>
@@ -161,8 +163,9 @@ function clearLocal(){
 }
 
 function exportCSV(){
-  const cols = ['ts','action','serial','artist','title','year','type','medium','dimensions',
-    'edition','owner','issued','lang','ip','city','region','country','org','visitorId'];
+  const cols = ['ts','action','serial','artist','title','year','technique','support','sheet','area',
+    'status','editionId','editionNo','editionTotal','gallery','issued','lang',
+    'ip','city','region','country','org','visitorId'];
   const devCols = ['userAgent','platform','language','screen','viewport','dpr','timezone','referrer'];
   const head = cols.concat(devCols.map(c=>'device_'+c));
   const q = s => '"' + String(s==null?'':s).replace(/"/g,'""') + '"';
