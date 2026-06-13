@@ -96,8 +96,9 @@
   .r .rv{flex:1}
 
   .sign-area{display:flex;align-items:flex-end;gap:34px;margin-top:38px}
-  #qrbox{width:128px;height:128px;flex-shrink:0}
-  #qrbox img,#qrbox canvas{width:128px!important;height:128px!important}
+  .qrbox{width:128px;height:128px;flex-shrink:0}
+  .qrbox img,.qrbox canvas{width:128px!important;height:128px!important}
+  #batchPages{display:none}
   .sign-box{flex:1}
   .sign-box .box{border:1px solid #bdbdbd;height:92px}
   .sign-box .cap{text-align:right;font-size:12px;font-style:italic;color:#555;margin-top:6px}
@@ -124,6 +125,10 @@
     .page{ width:210mm; height:297mm; box-shadow:none !important; margin:0 !important;
            page-break-after:always; break-after:page; overflow:hidden }
     .page:last-child{ page-break-after:auto; break-after:auto }
+    /* batch (full edition): print all generated pages instead of the live preview */
+    body.batch #preview{ display:none !important }
+    body.batch #batchPages{ display:block !important; position:absolute; left:0; top:0 }
+    body.batch #batchPages, body.batch #batchPages *{ visibility:visible !important }
   }
 
   /* ---- site header with gallery logo ---- */
@@ -302,6 +307,9 @@
       <button class="btn" id="sendbtn" onclick="sendPDF()" data-i18n="btnSend">Send PDF</button>
       <button class="btn ghost" onclick="copyLink()" data-i18n="btnCopy">Copy verify link</button>
     </div>
+    <div class="actions" style="margin-top:8px">
+      <button class="btn ghost" id="batchbtn" onclick="issueEdition()" data-i18n="btnBatch">Issue full edition</button>
+    </div>
     <p class="hint" id="hint-pdf"><b>Save as PDF</b> opens the print dialog → choose destination <b>“Save as PDF”</b> for crisp, selectable text (2 pages). Tip: in <i>More settings</i> set <i>Margins: None</i> and turn off <i>Headers and footers</i> (one-time). <b>Send PDF</b> shares a ready file.</p>
     <p class="hint" id="copied"></p>
     <p class="hint">
@@ -338,7 +346,7 @@
               <div class="r"><span class="rl" id="l-editionNo">Edition number:</span><span class="rv" id="v-editionNo">—</span></div>
             </div>
             <div class="sign-area">
-              <div id="qrbox"></div>
+              <div id="qrbox" class="qrbox"></div>
               <div class="sign-box">
                 <div class="box"></div>
                 <div class="cap" id="l-artistSign1">Artist's signature</div>
@@ -381,6 +389,9 @@
 <footer class="site-foot" id="site-foot">
   © 2026 <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. All rights reserved.
 </footer>
+
+<!-- batch (full edition) print area — filled on demand, shown only when printing -->
+<div id="batchPages"></div>
 
 <!-- consent banner -->
 <div class="consent" id="consent" style="position:fixed;left:0;right:0;bottom:0;z-index:60;background:#1a1714;color:#f3f1ec;padding:16px 20px;display:none;box-shadow:0 -10px 34px -22px rgba(0,0,0,.7)">
@@ -442,7 +453,7 @@ const FORM_I18N = {
        lInitials:"Initials", lArtworkNo:"Artwork no.", lEditionCode:"Code (auto)", lSizeCm:"Size cm",
        lEditionSize:"Edition size", lCopyNo:"Copy no.", lEditionId:"Edition ID (auto)", lCertNo:"Certificate no. (auto)",
        lGallery:"Gallery", lDate:"Date (optional)", lImage:"Artwork image", lSecret:"Private signing key (ECDSA)",
-       lBaseUrl:"Verification page base URL", btnSave:"Save as PDF", btnSend:"Send PDF", btnCopy:"Copy verify link",
+       lBaseUrl:"Verification page base URL", btnSave:"Save as PDF", btnSend:"Send PDF", btnCopy:"Copy verify link", btnBatch:"Issue full edition",
        phSecret:"paste your private key — keep it secret", lRemember:"Remember on this device", lKeys:"Generate keys",
        phDate:"dd.mm.yyyy", btnChoose:"Choose file", phNoFile:"No file selected", helpLink:"Help / How it works",
        lCategory:"Category", catPTG:"Paintings", catDRW:"Drawings & Works on Paper", catMIX:"Mixed Media & Phygital Art", catPRN:"Prints & Multiples", catSCL:"Sculptures & 3D Objects", catPHO:"Photography", catDIG:"Digital Art", catDEC:"Design & Decorative Art",
@@ -454,7 +465,7 @@ const FORM_I18N = {
        lInitials:"Ініціали", lArtworkNo:"№ твору", lEditionCode:"Код (авто)", lSizeCm:"Розмір, см",
        lEditionSize:"Тираж", lCopyNo:"№ копії", lEditionId:"ID видання (авто)", lCertNo:"№ сертифіката (авто)",
        lGallery:"Галерея", lDate:"Дата (необов'язково)", lImage:"Зображення твору", lSecret:"Приватний ключ підпису (ECDSA)",
-       lBaseUrl:"Базова URL сторінки перевірки", btnSave:"Зберегти як PDF", btnSend:"Надіслати PDF", btnCopy:"Копіювати лінк",
+       lBaseUrl:"Базова URL сторінки перевірки", btnSave:"Зберегти як PDF", btnSend:"Надіслати PDF", btnCopy:"Копіювати лінк", btnBatch:"Видати весь тираж",
        phSecret:"вставте приватний ключ — тримайте в таємниці", lRemember:"Запам'ятати на пристрої", lKeys:"Згенерувати ключі",
        phDate:"дд.мм.рррр", btnChoose:"Вибрати файл", phNoFile:"Файл не вибрано", helpLink:"Довідка / Як це працює",
        lCategory:"Категорія", catPTG:"Живопис", catDRW:"Графіка та Малюнок", catMIX:"Змішана техніка та Фіджитал-арт", catPRN:"Тиражна графіка / Естамп", catSCL:"Скульптура та Об'ємні форми", catPHO:"Фотографія", catDIG:"Цифрове мистецтво", catDEC:"Предмети дизайну та Декор",
@@ -466,7 +477,7 @@ const FORM_I18N = {
        lInitials:"Iniciály", lArtworkNo:"Č. diela", lEditionCode:"Kód (auto)", lSizeCm:"Rozmer cm",
        lEditionSize:"Náklad edície", lCopyNo:"Č. kópie", lEditionId:"ID edície (auto)", lCertNo:"Č. certifikátu (auto)",
        lGallery:"Galéria", lDate:"Dátum (voliteľné)", lImage:"Obraz diela", lSecret:"Súkromný podpisový kľúč (ECDSA)",
-       lBaseUrl:"Základná URL overovacej stránky", btnSave:"Uložiť ako PDF", btnSend:"Odoslať PDF", btnCopy:"Kopírovať odkaz",
+       lBaseUrl:"Základná URL overovacej stránky", btnSave:"Uložiť ako PDF", btnSend:"Odoslať PDF", btnCopy:"Kopírovať odkaz", btnBatch:"Vydať celú edíciu",
        phSecret:"vložte súkromný kľúč — uchovajte v tajnosti", lRemember:"Zapamätať na tomto zariadení", lKeys:"Vygenerovať kľúče",
        phDate:"dd.mm.rrrr", btnChoose:"Vybrať súbor", phNoFile:"Žiadny súbor", helpLink:"Pomoc / Ako to funguje",
        lCategory:"Kategória", catPTG:"Maľba", catDRW:"Kresba a práce na papieri", catMIX:"Zmiešané médiá a fygitálne umenie", catPRN:"Grafika a multiply", catSCL:"Sochy a 3D objekty", catPHO:"Fotografia", catDIG:"Digitálne umenie", catDEC:"Dizajn a dekoratívne umenie",
@@ -667,6 +678,80 @@ function onArtist(){
   render();
 }
 function editionLabel(d){ return (d.en||'—') + (d.et ? ' / '+d.et : ''); }
+
+// ───────── Batch issuance: build the whole edition (1/N … N/N) into one printable doc ─────────
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function qrDataUrl(text){
+  const tmp = document.createElement('div');
+  new QRCode(tmp, {text, width:512, height:512, colorDark:'#000000', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.M});
+  const cv = tmp.querySelector('canvas'); if(cv) return cv.toDataURL('image/png');
+  const im = tmp.querySelector('img'); return im ? im.src : '';
+}
+function certRow(label, value){ return '<div class="r"><span class="rl">'+esc(label)+':</span><span class="rv">'+esc(value||'—')+'</span></div>'; }
+function buildPage1(d, id, qr){
+  const es = editionStatusText(d);
+  return '<div class="page"><div class="frame"></div><div class="frame2"></div><div class="content">'
+    + '<div class="c-title">'+esc(lab('coa'))+'</div><div class="c-id">'+esc(id)+'</div>'
+    + (es ? '<div class="c-status">'+esc(es)+'</div>' : '')
+    + '<div class="rows">'
+    + certRow(lab('artist'), d.ar) + certRow(lab('title'), d.ti) + certRow(lab('year'), d.yr)
+    + certRow(lab('category'), categoryLabel(d)) + certRow(lab('technique'), d.te) + certRow(lab('support'), d.su)
+    + certRow(lab('sheet'), d.ss) + certRow(lab('area'), d.aa) + certRow(lab('status'), d.se)
+    + certRow(lab('editionId'), d.ei) + certRow(lab('editionNo'), editionLabel(d)) + '</div>'
+    + '<div class="sign-area"><div class="qrbox"><img src="'+esc(qr)+'"></div>'
+    + '<div class="sign-box"><div class="box"></div><div class="cap">'+esc(lab('artistSign'))+'</div></div></div>'
+    + '<div class="sign-line"><span>'+esc(lab('date'))+':</span> <span class="val">'+esc(d.is||'')+'</span><span class="ln"></span></div>'
+    + '<div class="sign-line"><span>'+esc(gallerySignLabel(d.gl))+'</span> <span class="ln"></span></div>'
+    + '</div></div>';
+}
+function buildPage2(d, id){
+  const art = artworkImg ? '<img src="'+esc(artworkImg)+'" alt="artwork">'
+    : '<div class="ph">'+(LANG==='uk'?'Тут буде зображення твору':(LANG==='sk'?'Tu bude obraz diela':'Artwork image will appear here'))+'</div>';
+  return '<div class="page"><div class="frame"></div><div class="frame2"></div><div class="content">'
+    + '<div class="c-title">'+esc(lab('ident'))+'</div><div class="c-id">'+esc(id)+'</div>'
+    + '<div class="artwork">'+art+'</div>'
+    + '<div class="rows">'+certRow(lab('title'), d.ti)+certRow(lab('editionId'), d.ei)+certRow(lab('editionNo'), editionLabel(d))+'</div>'
+    + '<div class="sign-area"><div style="flex:1"></div><div class="sign-box"><div class="box"></div><div class="cap">'+esc(lab('artistSign'))+'</div></div></div>'
+    + '<div class="sign-line"><span>'+esc(gallerySignLabel(d.gl))+'</span> <span class="ln"></span></div>'
+    + '</div></div>';
+}
+const BATCH_MSG = {
+  en:{needSize:'Set the edition size first (the “Edition size” field).', tooMany:'Edition size too large (max 200).', gen:'Generating'},
+  uk:{needSize:'Спочатку вкажіть тираж (поле «Edition size»).', tooMany:'Тираж завеликий (макс. 200).', gen:'Генерація'},
+  sk:{needSize:'Najprv zadajte náklad (pole „Edition size“).', tooMany:'Náklad je príliš veľký (max 200).', gen:'Generovanie'}
+};
+async function issueEdition(){
+  const d0 = collect();
+  const total = parseInt(d0.et, 10) || 0;
+  const m = BATCH_MSG[LANG] || BATCH_MSG.en;
+  if(total < 1){ alert(m.needSize); return; }
+  if(total > 200){ alert(m.tooMany); return; }
+  const btn = $('batchbtn'), label = btn.textContent; btn.disabled = true;
+  try{
+    if(imgUploadPromise) await imgUploadPromise;
+    let html = '';
+    for(let i=1; i<=total; i++){
+      btn.textContent = m.gen+' '+i+'/'+total;
+      const d = {...d0, en:String(i)};
+      const id = certId(d);
+      const link = await buildLink(d);                 // each copy signed individually
+      html += buildPage1(d, id, qrDataUrl(link)) + buildPage2(d, id);
+    }
+    $('batchPages').innerHTML = html;
+    document.body.classList.add('batch');
+    window.addEventListener('afterprint', function onAfter(){
+      window.removeEventListener('afterprint', onAfter);
+      document.body.classList.remove('batch'); $('batchPages').innerHTML = '';
+      btn.textContent = label; btn.disabled = false;
+    });
+    trackUse('batch');
+    window.print();
+  }catch(e){
+    alert('Batch error: '+e.message);
+    document.body.classList.remove('batch'); $('batchPages').innerHTML = '';
+    btn.textContent = label; btn.disabled = false;
+  }
+}
 
 // Asymmetric signature: ECDSA P-256 (WebCrypto). The gallery signs with its PRIVATE key;
 // verify.html checks with the gallery PUBLIC key — no secret needed to verify, impossible to forge.
