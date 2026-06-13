@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verify Certificate · ArtCert</title>
+<style>
+  :root{
+    --ink:#1a1714;--paper:#fbfaf7;--stone:#6b645b;--line:#d8d3c9;
+    --seal:#7c2d2d;--ok:#2f5d3a;--warn:#8a5a1c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Georgia,'Times New Roman',serif;background:var(--paper);
+       color:var(--ink);line-height:1.55;min-height:100vh}
+  .wrap{max-width:620px;margin:0 auto;padding:40px 24px 80px}
+
+  .top{text-align:center;padding-bottom:28px;border-bottom:1px solid var(--line);margin-bottom:32px}
+  .mark{font-size:12px;letter-spacing:.35em;text-transform:uppercase;color:var(--seal)}
+  .top h1{font-size:22px;font-weight:400;letter-spacing:.04em;margin-top:8px}
+
+  .status{display:flex;align-items:center;gap:14px;padding:20px 22px;
+          border:1px solid var(--line);margin-bottom:28px;background:#fff}
+  .status .dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+  .status .txt b{display:block;font-size:15px;letter-spacing:.05em}
+  .status .txt span{font-size:12px;color:var(--stone)}
+  .status.valid .dot{background:var(--ok)}
+  .status.valid{border-left:3px solid var(--ok)}
+  .status.unsigned .dot{background:var(--warn)}
+  .status.unsigned{border-left:3px solid var(--warn)}
+  .status.invalid .dot{background:var(--seal)}
+  .status.invalid{border-left:3px solid var(--seal)}
+
+  .card{background:#fff;border:1px solid var(--line);padding:34px 32px;position:relative}
+  .card::before{content:"";position:absolute;inset:12px;border:1px solid var(--line);pointer-events:none}
+  .ci{position:relative;z-index:1}
+  .eyebrow{text-align:center;font-size:10px;letter-spacing:.4em;
+          text-transform:uppercase;color:var(--seal)}
+  .ti{text-align:center;font-size:20px;font-style:italic;margin:18px 0 4px}
+  .rule{height:1px;background:var(--line);margin:18px 0}
+  .row{display:flex;justify-content:space-between;gap:16px;padding:6px 0;font-size:14px;align-items:baseline}
+  .row .k{color:var(--stone);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+  .row .v{text-align:right}
+  .serial{text-align:center;font-family:'Courier New',monospace;font-size:11px;
+          letter-spacing:.18em;color:var(--stone);margin-top:18px}
+  .disc{font-size:10px;color:var(--stone);text-align:center;line-height:1.6;
+        margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+  .empty{text-align:center;color:var(--stone);padding:60px 20px;font-size:15px}
+  .verify-key{margin-top:26px;padding:16px 18px;background:#f3f1ec;border-left:2px solid var(--seal)}
+  .verify-key label{display:block;font-size:11px;letter-spacing:.1em;
+        text-transform:uppercase;color:var(--stone);margin-bottom:8px}
+  .verify-key input{width:100%;font-family:Georgia,serif;font-size:14px;
+        padding:9px 11px;border:1px solid var(--line);background:#fff}
+  .verify-key p{font-size:11px;color:var(--stone);margin-top:8px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="mark">◇ ArtCert</div>
+    <h1 id="h-title">Certificate Verification</h1>
+  </div>
+  <div id="root"></div>
+</div>
+
+<script>
+const T = {
+  en:{verifying:"Verifying…",
+    valid:"Authentic — signature verified", validSub:"Signature matches the issuing artist's key.",
+    unsigned:"Certificate readable — signature not checked", unsignedSub:"Enter the artist's key below to confirm the signature.",
+    invalid:"Signature does not match", invalidSub:"This certificate may have been altered or the key is wrong.",
+    nodata:"No certificate data found in this link.",
+    eyebrow:"Certificate of Authenticity",
+    artist:"Artist",year:"Year",type:"Type",medium:"Medium",dims:"Dimensions",
+    edition:"Edition",owner:"Owner",issued:"Date issued",serial:"Serial",
+    keylabel:"Artist signature key",
+    keyhint:"Only the issuing artist knows this. Enter it to confirm the certificate is genuine and unaltered.",
+    disc:"This Certificate of Authenticity confirms the authorship and identification of the artwork based on information provided by the artist or authorised representative. It does not automatically transfer copyright or ownership rights unless explicitly stated in a separate agreement."
+  },
+  uk:{verifying:"Перевірка…",
+    valid:"Автентичний — підпис підтверджено", validSub:"Підпис відповідає ключу художника-емітента.",
+    unsigned:"Сертифікат читається — підпис не перевірено", unsignedSub:"Введіть ключ художника нижче, щоб підтвердити підпис.",
+    invalid:"Підпис не співпадає", invalidSub:"Сертифікат міг бути змінений або введено невірний ключ.",
+    nodata:"У цьому посиланні немає даних сертифіката.",
+    eyebrow:"Сертифікат автентичності",
+    artist:"Художник",year:"Рік",type:"Тип",medium:"Техніка",dims:"Розміри",
+    edition:"Тираж",owner:"Власник",issued:"Дата видачі",serial:"Номер",
+    keylabel:"Ключ підпису художника",
+    keyhint:"Цей ключ знає лише художник-емітент. Введіть його, щоб підтвердити справжність сертифіката.",
+    disc:"Цей сертифікат автентичності підтверджує авторство та ідентифікацію твору на підставі інформації, наданої художником або уповноваженим представником. Сертифікат не передає автоматично авторські права або право власності, якщо це прямо не передбачено окремим договором."
+  }
+};
+
+function decodeData(str){
+  str = str.replace(/-/g,'+').replace(/_/g,'/');
+  const bin = atob(str);
+  const bytes = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  const json = new TextDecoder().decode(bytes);
+  return JSON.parse(json);
+}
+function sigHash(str){
+  let h=5381; for(let i=0;i<str.length;i++){h=((h<<5)+h)+str.charCodeAt(i);h=h>>>0;}
+  return h.toString(16).padStart(8,'0');
+}
+
+function rowHTML(k,v){ return v ? `<div class="row"><span class="k">${k}</span><span class="v">${esc(v)}</span></div>` : ''; }
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function checkSig(d, key){
+  const stored = d.sg;
+  const copy = {...d}; delete copy.sg;
+  const calc = sigHash(JSON.stringify(copy)+'::'+key);
+  return calc === stored;
+}
+
+function render(d, lang){
+  const t = T[lang] || T.en;
+  document.documentElement.lang = lang;
+
+  let statusClass='unsigned', statusTitle=t.unsigned, statusSub=t.unsignedSub;
+  // try with empty key first (cert generated without a secret)
+  if(d.sg && checkSig(d,'')){ statusClass='valid'; statusTitle=t.valid; statusSub=t.validSub; }
+
+  const keyBox = (statusClass!=='valid') ? `
+    <div class="verify-key">
+      <label>${t.keylabel}</label>
+      <input id="keyin" placeholder="••••••" oninput="recheck()">
+      <p>${t.keyhint}</p>
+    </div>` : '';
+
+  document.getElementById('root').innerHTML = `
+    <div class="status ${statusClass}" id="statusbar">
+      <span class="dot"></span>
+      <span class="txt"><b id="st-title">${statusTitle}</b><span id="st-sub">${statusSub}</span></span>
+    </div>
+    <div class="card"><div class="ci">
+      <div class="eyebrow">${t.eyebrow}</div>
+      <div class="ti">${esc(d.ti||'—')}</div>
+      <div class="rule"></div>
+      ${rowHTML(t.artist,d.ar)}
+      ${rowHTML(t.year,d.yr)}
+      ${rowHTML(t.type,d.ty)}
+      ${rowHTML(t.medium,d.me)}
+      ${rowHTML(t.dims,d.di)}
+      ${rowHTML(t.edition,d.ed)}
+      ${rowHTML(t.owner,d.ow)}
+      ${rowHTML(t.issued,d.is)}
+      <div class="rule"></div>
+      <div class="serial">${esc(d.sn||'')}</div>
+      <div class="disc">${t.disc}</div>
+    </div></div>
+    ${keyBox}`;
+
+  window._cert = d; window._lang = lang;
+}
+
+function recheck(){
+  const key = document.getElementById('keyin').value;
+  const d = window._cert, t = T[window._lang]||T.en;
+  const bar = document.getElementById('statusbar');
+  const ok = checkSig(d,key);
+  bar.className = 'status ' + (key==='' ? 'unsigned' : (ok?'valid':'invalid'));
+  document.getElementById('st-title').textContent = key==='' ? t.unsigned : (ok?t.valid:t.invalid);
+  document.getElementById('st-sub').textContent   = key==='' ? t.unsignedSub : (ok?t.validSub:t.invalidSub);
+}
+
+(function init(){
+  const hash = location.hash.slice(1);
+  if(!hash){
+    document.getElementById('root').innerHTML =
+      `<div class="empty">${T.en.nodata}<br><span style="font-size:12px">${T.uk.nodata}</span></div>`;
+    return;
+  }
+  try{
+    const d = decodeData(hash);
+    render(d, d.ln || 'en');
+  }catch(e){
+    document.getElementById('root').innerHTML =
+      `<div class="empty">Could not read certificate data.<br><span style="font-size:12px">Не вдалося прочитати дані сертифіката.</span></div>`;
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArtCert — Certificate of Authenticity</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --ink:#1a1714;        /* near-black warm */
+    --paper:#fbfaf7;      /* off-white */
+    --stone:#6b645b;      /* muted brown-grey */
+    --line:#d8d3c9;       /* hairline */
+    --seal:#7c2d2d;       /* oxblood — the one accent */
+    --field-bg:#ffffff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:Georgia,'Times New Roman',serif;
+    background:var(--paper);color:var(--ink);
+    line-height:1.5;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+
+  /* ---- header ---- */
+  header{border-bottom:1px solid var(--line);padding:28px 0 24px}
+  .brand{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .mark{font-size:13px;letter-spacing:.35em;text-transform:uppercase;
+        color:var(--seal);font-family:Georgia,serif}
+  .brand h1{font-size:30px;font-weight:400;letter-spacing:.02em}
+  .tag{font-size:13px;color:var(--stone);margin-top:6px;letter-spacing:.02em}
+
+  /* ---- layout ---- */
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+        gap:48px;padding:36px 0 80px}
+  @media(max-width:880px){.grid{grid-template-columns:1fr;gap:36px}}
+
+  h2.sec{font-size:12px;letter-spacing:.28em;text-transform:uppercase;
+         color:var(--stone);padding-bottom:10px;border-bottom:1px solid var(--line);
+         margin-bottom:22px;font-weight:400}
+
+  label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+        color:var(--stone);margin:0 0 6px}
+  .field{margin-bottom:18px}
+  input,select,textarea{
+    width:100%;font-family:Georgia,serif;font-size:15px;color:var(--ink);
+    background:var(--field-bg);border:1px solid var(--line);
+    padding:10px 12px;border-radius:0;outline:none;
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--seal)}
+  textarea{resize:vertical;min-height:64px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+
+  .btn{display:inline-block;background:var(--ink);color:var(--paper);
+       border:none;font-family:Georgia,serif;font-size:14px;letter-spacing:.08em;
+       padding:13px 26px;cursor:pointer;transition:background .15s}
+  .btn:hover{background:var(--seal)}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+  .btn.ghost:hover{background:var(--ink);color:var(--paper)}
+  .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+
+  /* ---- preview certificate ---- */
+  .cert-frame{background:#fff;border:1px solid var(--line);
+      box-shadow:0 1px 0 rgba(0,0,0,.03),0 18px 40px -28px rgba(0,0,0,.4);
+      position:sticky;top:24px}
+  .cert{padding:42px 40px;position:relative}
+  .cert::before{content:"";position:absolute;inset:14px;
+      border:1px solid var(--line);pointer-events:none}
+  .cert-inner{position:relative;z-index:1}
+  .c-eyebrow{text-align:center;font-size:10px;letter-spacing:.4em;
+      text-transform:uppercase;color:var(--seal)}
+  .c-title{text-align:center;font-size:22px;letter-spacing:.04em;margin:8px 0 2px}
+  .c-sub{text-align:center;font-size:11px;letter-spacing:.2em;
+      text-transform:uppercase;color:var(--stone);margin-bottom:24px}
+  .c-rule{height:1px;background:var(--line);margin:18px 0}
+  .c-row{display:flex;justify-content:space-between;gap:16px;
+      font-size:14px;padding:5px 0;align-items:baseline}
+  .c-row .k{color:var(--stone);font-size:11px;letter-spacing:.1em;
+      text-transform:uppercase;flex-shrink:0}
+  .c-row .v{text-align:right}
+  .c-artwork{text-align:center;margin:16px 0 8px}
+  .c-artwork .name{font-size:19px;font-style:italic}
+  .c-statement{font-size:12.5px;color:#2d2823;line-height:1.65;
+      text-align:center;margin:16px 8px;font-style:italic}
+  .c-foot{display:flex;justify-content:space-between;align-items:flex-end;
+      margin-top:26px;gap:20px}
+  .c-sign{flex:1}
+  .c-sign .line{border-top:1px solid var(--ink);padding-top:5px;
+      font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--stone)}
+  #qrbox{width:96px;height:96px;flex-shrink:0}
+  #qrbox img,#qrbox canvas{width:96px!important;height:96px!important}
+  .c-serial{text-align:center;font-size:10px;letter-spacing:.18em;
+      color:var(--stone);margin-top:18px;font-family:'Courier New',monospace}
+  .c-disc{font-size:8.5px;color:var(--stone);text-align:center;
+      line-height:1.5;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+
+  .hint{font-size:12px;color:var(--stone);margin-top:14px;line-height:1.5}
+  .langtabs{display:flex;gap:0;margin-bottom:22px;border:1px solid var(--line);width:fit-content}
+  .langtabs button{font-family:Georgia,serif;font-size:12px;letter-spacing:.1em;
+      padding:8px 18px;background:#fff;border:none;cursor:pointer;color:var(--stone)}
+  .langtabs button.on{background:var(--ink);color:var(--paper)}
+  .verify-note{font-size:11px;color:var(--stone);margin-top:20px;
+      padding:12px 14px;background:#f3f1ec;border-left:2px solid var(--seal)}
+  code{font-family:'Courier New',monospace;font-size:11px;word-break:break-all}
+
+  /* ---- print: only the certificate, centred on A4 ---- */
+  @media print{
+    @page{size:A4;margin:0}
+    body{background:#fff}
+    header,.grid > section:first-child,h2.sec{display:none!important}
+    .wrap,.grid{display:block;max-width:none;margin:0;padding:0}
+    .cert-frame{position:static;box-shadow:none;border:none;
+      margin:0 auto;max-width:560px;padding-top:40px}
+    .grid > section:last-child{margin:0}
+  }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="brand">
+    <span class="mark">◇ ArtCert</span>
+    <h1>Certificate Studio</h1>
+  </div>
+  <p class="tag">Generate a Certificate of Authenticity · EN / UA · PDF + QR verification</p>
+</div></header>
+
+<div class="wrap"><div class="grid">
+
+  <!-- FORM -->
+  <section>
+    <h2 class="sec">Artwork details</h2>
+
+    <div class="langtabs">
+      <button id="tab-en" class="on" onclick="setLang('en')">English</button>
+      <button id="tab-uk" onclick="setLang('uk')">Українська</button>
+    </div>
+
+    <div class="field">
+      <label>Artist name / Ім'я художника</label>
+      <input id="artist" oninput="render()" placeholder="Svitlana Dudenko">
+    </div>
+
+    <div class="field">
+      <label>Artwork title / Назва твору</label>
+      <input id="title" oninput="render()" placeholder="Cosmos No. 7">
+    </div>
+
+    <div class="two">
+      <div class="field">
+        <label>Year / Рік</label>
+        <input id="year" oninput="render()" placeholder="2024">
+      </div>
+      <div class="field">
+        <label>Object type / Тип</label>
+        <select id="otype" onchange="render()">
+          <option value="Original">Original</option>
+          <option value="Limited Edition">Limited Edition</option>
+          <option value="Artist Proof">Artist Proof</option>
+          <option value="Open Edition">Open Edition</option>
+          <option value="Reproduction">Reproduction</option>
+          <option value="Digital">Digital</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Technique &amp; materials / Техніка та матеріали</label>
+      <input id="medium" oninput="render()" placeholder="Oil on canvas">
+    </div>
+
+    <div class="three">
+      <div class="field">
+        <label>Dimensions / Розміри</label>
+        <input id="dims" oninput="render()" placeholder="60 × 80 cm">
+      </div>
+      <div class="field">
+        <label>Edition no. / Тираж</label>
+        <input id="edition" oninput="render()" placeholder="3/100">
+      </div>
+      <div class="field">
+        <label>Date issued / Дата</label>
+        <input id="issued" type="date" oninput="render()">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Owner / buyer (optional) / Власник (необов'язково)</label>
+      <input id="owner" oninput="render()" placeholder="Private collection">
+    </div>
+
+    <div class="field">
+      <label>Your secret signature key / Ваш секретний ключ</label>
+      <input id="secret" oninput="render()" placeholder="keep this private — same key verifies your certs">
+    </div>
+
+    <div class="verify-note" id="vnote">
+      Fill the form to generate a verification link. The QR code points to
+      <code id="baseurl"></code> — edit this once you publish to GitHub Pages.
+    </div>
+
+    <div class="field" style="margin-top:20px">
+      <label>Verification page base URL</label>
+      <input id="vbase" oninput="render()" placeholder="https://YOUR-NAME.github.io/artcert/verify.html">
+    </div>
+
+    <div class="actions">
+      <button class="btn" onclick="makePDF()">Save as PDF</button>
+      <button class="btn ghost" onclick="copyLink()">Copy verify link</button>
+    </div>
+    <p class="hint">In the print dialog choose <b>“Save as PDF”</b> as the destination. The QR code and Cyrillic text print correctly.</p>
+    <p class="hint" id="copied"></p>
+  </section>
+
+  <!-- PREVIEW -->
+  <section>
+    <h2 class="sec">Live preview</h2>
+    <div class="cert-frame"><div class="cert"><div class="cert-inner" id="cert">
+      <div class="c-eyebrow" id="p-eyebrow">Certificate of Authenticity</div>
+      <div class="c-title" id="p-platform">ArtCert</div>
+      <div class="c-sub" id="p-issuer">Issued by the artist</div>
+
+      <div class="c-artwork">
+        <div class="name" id="p-title">—</div>
+      </div>
+
+      <div class="c-rule"></div>
+      <div class="c-row"><span class="k" id="l-artist">Artist</span><span class="v" id="p-artist">—</span></div>
+      <div class="c-row"><span class="k" id="l-year">Year</span><span class="v" id="p-year">—</span></div>
+      <div class="c-row"><span class="k" id="l-type">Type</span><span class="v" id="p-type">—</span></div>
+      <div class="c-row"><span class="k" id="l-medium">Medium</span><span class="v" id="p-medium">—</span></div>
+      <div class="c-row"><span class="k" id="l-dims">Dimensions</span><span class="v" id="p-dims">—</span></div>
+      <div class="c-row" id="r-edition"><span class="k" id="l-edition">Edition</span><span class="v" id="p-edition">—</span></div>
+      <div class="c-row" id="r-owner"><span class="k" id="l-owner">Owner</span><span class="v" id="p-owner">—</span></div>
+      <div class="c-rule"></div>
+
+      <div class="c-statement" id="p-statement"></div>
+
+      <div class="c-foot">
+        <div class="c-sign">
+          <div class="line" id="l-sign">Signature</div>
+        </div>
+        <div id="qrbox"></div>
+      </div>
+
+      <div class="c-serial" id="p-serial">—</div>
+      <div class="c-disc" id="p-disc"></div>
+    </div></div></div>
+  </section>
+
+</div></div>
+
+<script>
+const T = {
+  en:{
+    eyebrow:"Certificate of Authenticity", issuer:"Issued by the artist",
+    artist:"Artist", year:"Year", type:"Type", medium:"Medium",
+    dims:"Dimensions", edition:"Edition", owner:"Owner", sign:"Artist signature",
+    statement:"This certifies that the artwork described above is an authentic original work created by the named artist. The information herein is provided by the artist or authorised representative.",
+    disc:"This Certificate of Authenticity confirms the authorship and identification of the artwork based on information provided by the artist or authorised representative. It does not automatically transfer copyright or ownership rights unless explicitly stated in a separate agreement."
+  },
+  uk:{
+    eyebrow:"Сертифікат автентичності", issuer:"Видано художником",
+    artist:"Художник", year:"Рік", type:"Тип", medium:"Техніка",
+    dims:"Розміри", edition:"Тираж", owner:"Власник", sign:"Підпис художника",
+    statement:"Цим засвідчується, що описаний вище твір є автентичним оригінальним твором, створеним зазначеним художником. Наведена інформація надана художником або уповноваженим представником.",
+    disc:"Цей сертифікат автентичності підтверджує авторство та ідентифікацію твору на підставі інформації, наданої художником або уповноваженим представником. Сертифікат не передає автоматично авторські права або право власності, якщо це прямо не передбачено окремим договором."
+  }
+};
+let LANG = 'en';
+const $ = id => document.getElementById(id);
+
+function setLang(l){
+  LANG = l;
+  $('tab-en').classList.toggle('on', l==='en');
+  $('tab-uk').classList.toggle('on', l==='uk');
+  render();
+}
+
+// URL-safe Base64 for UTF-8 (handles Cyrillic)
+function encodeData(obj){
+  const json = JSON.stringify(obj);
+  const bytes = new TextEncoder().encode(json);
+  let bin=''; bytes.forEach(b=>bin+=String.fromCharCode(b));
+  return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+// lightweight non-crypto hash (sync, no async needed) — deters casual tampering
+function sigHash(str){
+  let h=5381; for(let i=0;i<str.length;i++){h=((h<<5)+h)+str.charCodeAt(i);h=h>>>0;}
+  return h.toString(16).padStart(8,'0');
+}
+
+function collect(){
+  return {
+    pl:'ArtCert',
+    ar:$('artist').value.trim(),
+    ti:$('title').value.trim(),
+    yr:$('year').value.trim(),
+    ty:$('otype').value,
+    me:$('medium').value.trim(),
+    di:$('dims').value.trim(),
+    ed:$('edition').value.trim(),
+    ow:$('owner').value.trim(),
+    is:$('issued').value,
+    ln:LANG
+  };
+}
+function serial(d){
+  const base = (d.ar+d.ti+d.yr+d.is).toUpperCase().replace(/[^A-ZА-Я0-9]/g,'');
+  return 'COA-'+sigHash(base).toUpperCase();
+}
+function buildLink(d){
+  const ser = serial(d);
+  const secret = $('secret').value;
+  const payload = {...d, sn:ser};
+  payload.sg = sigHash(JSON.stringify(payload)+'::'+secret);
+  const base = $('vbase').value.trim() || 'verify.html';
+  return base + '#' + encodeData(payload);
+}
+
+let qr;
+function render(){
+  const d = collect(), t = T[LANG];
+  $('p-eyebrow').textContent = t.eyebrow;
+  $('p-issuer').textContent  = t.issuer;
+  $('p-title').textContent   = d.ti || '—';
+  $('p-artist').textContent  = d.ar || '—';
+  $('p-year').textContent    = d.yr || '—';
+  $('p-type').textContent    = d.ty || '—';
+  $('p-medium').textContent  = d.me || '—';
+  $('p-dims').textContent    = d.di || '—';
+  $('p-edition').textContent = d.ed || '—';
+  $('p-owner').textContent   = d.ow || '—';
+  $('l-artist').textContent  = t.artist;
+  $('l-year').textContent    = t.year;
+  $('l-type').textContent    = t.type;
+  $('l-medium').textContent  = t.medium;
+  $('l-dims').textContent    = t.dims;
+  $('l-edition').textContent = t.edition;
+  $('l-owner').textContent   = t.owner;
+  $('l-sign').textContent    = t.sign;
+  $('p-statement').textContent = t.statement;
+  $('p-disc').textContent    = t.disc;
+  $('r-edition').style.display = d.ed ? 'flex':'none';
+  $('r-owner').style.display   = d.ow ? 'flex':'none';
+  $('p-serial').textContent  = serial(d);
+
+  const link = buildLink(d);
+  $('baseurl').textContent = $('vbase').value.trim() || '(set base URL below)';
+  $('qrbox').innerHTML='';
+  qr = new QRCode($('qrbox'),{text:link,width:96,height:96,
+       colorDark:'#1a1714',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+}
+
+function copyLink(){
+  const link = buildLink(collect());
+  navigator.clipboard.writeText(link).then(()=>{
+    $('copied').textContent = '✓ Verification link copied to clipboard.';
+    setTimeout(()=>$('copied').textContent='',3000);
+  });
+}
+
+// Reliable, Cyrillic-safe PDF: print the certificate via the browser.
+// This prints real browser text (perfect Cyrillic), not a rasterised image.
+function makePDF(){
+  window.print();
+}
+
+// defaults
+$('issued').valueAsDate = new Date();
+render();
+</script>
+</body>
+</html>
