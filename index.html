@@ -98,8 +98,8 @@
   .c-sign{flex:1}
   .c-sign .line{border-top:1px solid var(--ink);padding-top:5px;
       font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--stone)}
-  #qrbox{width:96px;height:96px;flex-shrink:0}
-  #qrbox img,#qrbox canvas{width:96px!important;height:96px!important}
+  #qrbox{width:132px;height:132px;flex-shrink:0}
+  #qrbox img,#qrbox canvas{width:132px!important;height:132px!important}
   .c-serial{text-align:center;font-size:10px;letter-spacing:.18em;
       color:var(--stone);margin-top:18px;font-family:'Courier New',monospace}
   .c-disc{font-size:8.5px;color:var(--stone);text-align:center;
@@ -359,8 +359,10 @@ function render(){
   const link = buildLink(d);
   $('baseurl').textContent = $('vbase').value.trim() || '(set base URL below)';
   $('qrbox').innerHTML='';
-  qr = new QRCode($('qrbox'),{text:link,width:96,height:96,
-       colorDark:'#1a1714',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+  // Render at high intrinsic resolution (downscaled by CSS to 132px) so it stays
+  // crisp when html2canvas rasterises it into the PDF. Pure black = best scan contrast.
+  qr = new QRCode($('qrbox'),{text:link,width:528,height:528,
+       colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
 }
 
 function copyLink(){
@@ -379,7 +381,7 @@ let pdfBusy = false;
 // Render the certificate to a one-page A4 PDF and return its blob + file name.
 async function generatePdfFile(){
   const el = document.querySelector('.cert');
-  const canvas = await html2canvas(el, {scale:3, backgroundColor:'#ffffff', useCORS:true});
+  const canvas = await html2canvas(el, {scale:4, backgroundColor:'#ffffff', useCORS:true});
   const {jsPDF} = window.jspdf;
   const pdf = new jsPDF({unit:'mm', format:'a4', orientation:'portrait'});
   const pw = pdf.internal.pageSize.getWidth();   // 210
@@ -389,7 +391,7 @@ async function generatePdfFile(){
   let w = maxW, h = w / ratio;                    // fit width, then clamp to height
   if(h > maxH){ h = maxH; w = h * ratio; }
   const x = (pw - w)/2, y = (ph - h)/2;           // centre on the page
-  pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, w, h);
+  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, w, h, undefined, 'FAST');
   return { blob: pdf.output('blob'), filename: serial(collect()) + '.pdf' };
 }
 
