@@ -141,7 +141,7 @@
       <span class="mark">◇ ArtCOA</span>
       <h1>Certificate Studio</h1>
     </div>
-    <p class="tag">Two-page Certificate of Authenticity · EN / UA / SK · PDF + QR verification</p>
+    <p class="tag" data-i18n="tag">Two-page Certificate of Authenticity · EN / UA / SK · PDF + QR verification</p>
   </div>
 </div></header>
 
@@ -149,7 +149,7 @@
 
   <!-- ============ FORM ============ -->
   <section>
-    <h2 class="sec">Certificate details</h2>
+    <h2 class="sec" data-i18n="secDetails">Certificate details</h2>
 
     <div class="langtabs">
       <button id="tab-en" class="on" onclick="setLang('en')">English</button>
@@ -158,20 +158,20 @@
     </div>
 
     <div class="field">
-      <label>Artist / Художник</label>
+      <label data-i18n="lArtist">Artist</label>
       <input id="artist" oninput="onArtist()" placeholder="Svitlana Dudenko">
     </div>
     <div class="field">
-      <label>Title of artwork / Назва твору</label>
+      <label data-i18n="lTitle">Title of artwork</label>
       <input id="title" oninput="render()" placeholder="Summer wind">
     </div>
     <div class="two">
       <div class="field">
-        <label>Year / Рік</label>
+        <label data-i18n="lYear">Year</label>
         <input id="year" oninput="render()" placeholder="2026">
       </div>
       <div class="field">
-        <label>Status edition / Статус</label>
+        <label data-i18n="lStatus">Status edition</label>
         <select id="status" onchange="render()">
           <option>Limited Edition</option>
           <option selected>Hand-embellished Limited Edition</option>
@@ -184,101 +184,101 @@
       </div>
     </div>
     <div class="field">
-      <label>Technique / Техніка</label>
+      <label data-i18n="lTechnique">Technique</label>
       <input id="technique" oninput="render()" placeholder="Hand-embellished print">
     </div>
     <div class="field">
-      <label>Support / Основа</label>
+      <label data-i18n="lSupport">Support</label>
       <input id="support" oninput="render()" placeholder="Paper: Canson Rives, 250 g/m²">
     </div>
     <div class="two">
       <div class="field">
-        <label>Sheet size / Розмір аркуша</label>
+        <label data-i18n="lSheet">Sheet size</label>
         <input id="sheet" oninput="render()" placeholder="500x700 mm">
       </div>
       <div class="field">
-        <label>Artwork area / Розмір зображення</label>
+        <label data-i18n="lArea">Artwork area</label>
         <input id="area" oninput="render()" placeholder="280x500 mm">
       </div>
     </div>
-    <h2 class="sec" style="margin-top:24px">Edition ID (auto-built)</h2>
+    <h2 class="sec" style="margin-top:24px" data-i18n="secEdition">Edition ID (auto-built)</h2>
     <div class="three">
       <div class="field">
-        <label>Initials / Ініціали</label>
+        <label data-i18n="lInitials">Initials</label>
         <input id="initials" oninput="render()" placeholder="sd">
       </div>
       <div class="field">
-        <label>Artwork no. / № твору</label>
+        <label data-i18n="lArtworkNo">Artwork no.</label>
         <input id="artworkNo" oninput="render()" placeholder="001">
       </div>
       <div class="field">
-        <label>Edition code / Код (auto)</label>
+        <label data-i18n="lEditionCode">Code (auto)</label>
         <input id="editionCode" readonly placeholder="EDH">
       </div>
     </div>
     <div class="three">
       <div class="field">
-        <label>Size cm / Розмір см</label>
+        <label data-i18n="lSizeCm">Size cm</label>
         <input id="sizeCm" oninput="render()" placeholder="50x70">
       </div>
       <div class="field">
-        <label>Edition size / Тираж</label>
+        <label data-i18n="lEditionSize">Edition size</label>
         <input id="editionTotal" oninput="render()" placeholder="15">
       </div>
       <div class="field">
-        <label>Copy no. / № копії</label>
+        <label data-i18n="lCopyNo">Copy no.</label>
         <input id="editionNo" oninput="render()" placeholder="1">
       </div>
     </div>
     <div class="two">
       <div class="field">
-        <label>Edition ID / ID видання (auto)</label>
+        <label data-i18n="lEditionId">Edition ID (auto)</label>
         <input id="editionId" readonly placeholder="sd-2026-001-EDH-50x70-15">
       </div>
       <div class="field">
-        <label>Certificate no. / № сертифіката (auto)</label>
+        <label data-i18n="lCertNo">Certificate no. (auto)</label>
         <input id="certNo" readonly placeholder="…-1">
       </div>
     </div>
 
     <div class="field">
-      <label>Gallery / Галерея</label>
+      <label data-i18n="lGallery">Gallery</label>
       <input id="gallery" oninput="render()" value="Smalta Art Gallery">
     </div>
     <div class="field">
-      <label>Date (optional) / Дата (необов'язково)</label>
+      <label data-i18n="lDate">Date (optional)</label>
       <input id="issued" type="date" oninput="render()">
     </div>
 
-    <h2 class="sec" style="margin-top:28px">Page 2 — artwork identification</h2>
+    <h2 class="sec" style="margin-top:28px" data-i18n="secPage2">Page 2 — artwork identification</h2>
     <div class="field">
-      <label>Artwork image / Зображення твору</label>
+      <label data-i18n="lImage">Artwork image</label>
       <input id="imgfile" type="file" accept="image/*" onchange="loadImage(event)">
     </div>
 
-    <h2 class="sec" style="margin-top:28px">Verification</h2>
+    <h2 class="sec" style="margin-top:28px" data-i18n="secVerify">Verification</h2>
     <div class="field">
-      <label>Your secret signature key / Секретний ключ</label>
-      <input id="secret" oninput="render()" placeholder="keep private — same key verifies all your certificates">
+      <label data-i18n="lSecret">Your secret signature key</label>
+      <input id="secret" oninput="render()" data-i18n-ph="phSecret" placeholder="keep private — same key verifies all your certificates">
     </div>
     <div class="field">
-      <label>Verification page base URL</label>
+      <label data-i18n="lBaseUrl">Verification page base URL</label>
       <input id="vbase" oninput="render()" value="https://wizartclub-cyber.github.io/artCOA/verify.html">
     </div>
 
     <div class="actions">
-      <button class="btn" id="pdfbtn" onclick="makePDF()">Save as PDF</button>
-      <button class="btn" id="sendbtn" onclick="sendPDF()">Send PDF</button>
-      <button class="btn ghost" onclick="copyLink()">Copy verify link</button>
+      <button class="btn" id="pdfbtn" onclick="makePDF()" data-i18n="btnSave">Save as PDF</button>
+      <button class="btn" id="sendbtn" onclick="sendPDF()" data-i18n="btnSend">Send PDF</button>
+      <button class="btn ghost" onclick="copyLink()" data-i18n="btnCopy">Copy verify link</button>
     </div>
-    <p class="hint"><b>Save as PDF</b> opens the print dialog → choose destination <b>“Save as PDF”</b> for crisp, selectable text (2 pages). Tip: in <i>More settings</i> set <i>Margins: None</i> and turn off <i>Headers and footers</i> (one-time). <b>Send PDF</b> shares a ready file.</p>
+    <p class="hint" id="hint-pdf"><b>Save as PDF</b> opens the print dialog → choose destination <b>“Save as PDF”</b> for crisp, selectable text (2 pages). Tip: in <i>More settings</i> set <i>Margins: None</i> and turn off <i>Headers and footers</i> (one-time). <b>Send PDF</b> shares a ready file.</p>
     <p class="hint" id="copied"></p>
     <p class="hint"><a class="plink" id="privacy-link" onclick="openPrivacy()">Privacy &amp; data</a></p>
   </section>
 
   <!-- ============ PREVIEW ============ -->
   <section class="preview-col">
-    <h2 class="sec">Live preview · A4 ×2</h2>
+    <h2 class="sec" data-i18n="secPreview">Live preview · A4 ×2</h2>
     <div class="preview-vp" id="previewVp">
       <div id="preview">
 
@@ -392,6 +392,59 @@ function gallerySignLabel(gl){
   const w = (LANG==='en') ? LBL.en.signWord : (LBL[LANG].signWord + ' / ' + LBL.en.signWord);
   return ((gl||'') + ' ' + w).trim() + ':';
 }
+
+// Form UI strings (field labels, section headers, buttons) — shown in the SELECTED language only.
+const FORM_I18N = {
+  en:{ secDetails:"Certificate details", secEdition:"Edition ID (auto-built)",
+       secPage2:"Page 2 — artwork identification", secVerify:"Verification", secPreview:"Live preview · A4 ×2",
+       lArtist:"Artist", lTitle:"Title of artwork", lYear:"Year", lStatus:"Status edition",
+       lTechnique:"Technique", lSupport:"Support", lSheet:"Sheet size", lArea:"Artwork area",
+       lInitials:"Initials", lArtworkNo:"Artwork no.", lEditionCode:"Code (auto)", lSizeCm:"Size cm",
+       lEditionSize:"Edition size", lCopyNo:"Copy no.", lEditionId:"Edition ID (auto)", lCertNo:"Certificate no. (auto)",
+       lGallery:"Gallery", lDate:"Date (optional)", lImage:"Artwork image", lSecret:"Your secret signature key",
+       lBaseUrl:"Verification page base URL", btnSave:"Save as PDF", btnSend:"Send PDF", btnCopy:"Copy verify link",
+       phSecret:"keep private — same key verifies all your certificates",
+       tag:"Two-page Certificate of Authenticity · EN / UA / SK · PDF + QR verification" },
+  uk:{ secDetails:"Дані сертифіката", secEdition:"ID видання (авто)",
+       secPage2:"Сторінка 2 — ідентифікація твору", secVerify:"Перевірка", secPreview:"Перегляд · A4 ×2",
+       lArtist:"Художник", lTitle:"Назва твору", lYear:"Рік", lStatus:"Статус видання",
+       lTechnique:"Техніка", lSupport:"Основа", lSheet:"Розмір аркуша", lArea:"Розмір зображення",
+       lInitials:"Ініціали", lArtworkNo:"№ твору", lEditionCode:"Код (авто)", lSizeCm:"Розмір, см",
+       lEditionSize:"Тираж", lCopyNo:"№ копії", lEditionId:"ID видання (авто)", lCertNo:"№ сертифіката (авто)",
+       lGallery:"Галерея", lDate:"Дата (необов'язково)", lImage:"Зображення твору", lSecret:"Секретний ключ підпису",
+       lBaseUrl:"Базова URL сторінки перевірки", btnSave:"Зберегти як PDF", btnSend:"Надіслати PDF", btnCopy:"Копіювати лінк",
+       phSecret:"тримайте в таємниці — один ключ підтверджує всі ваші сертифікати",
+       tag:"Двосторінковий сертифікат автентичності · EN / UA / SK · PDF + QR" },
+  sk:{ secDetails:"Údaje certifikátu", secEdition:"ID edície (auto)",
+       secPage2:"Strana 2 — identifikácia diela", secVerify:"Overenie", secPreview:"Náhľad · A4 ×2",
+       lArtist:"Umelec", lTitle:"Názov diela", lYear:"Rok", lStatus:"Stav edície",
+       lTechnique:"Technika", lSupport:"Podklad", lSheet:"Rozmer listu", lArea:"Plocha diela",
+       lInitials:"Iniciály", lArtworkNo:"Č. diela", lEditionCode:"Kód (auto)", lSizeCm:"Rozmer cm",
+       lEditionSize:"Náklad edície", lCopyNo:"Č. kópie", lEditionId:"ID edície (auto)", lCertNo:"Č. certifikátu (auto)",
+       lGallery:"Galéria", lDate:"Dátum (voliteľné)", lImage:"Obraz diela", lSecret:"Váš tajný podpisový kľúč",
+       lBaseUrl:"Základná URL overovacej stránky", btnSave:"Uložiť ako PDF", btnSend:"Odoslať PDF", btnCopy:"Kopírovať odkaz",
+       phSecret:"uchovajte v tajnosti — jeden kľúč overuje všetky vaše certifikáty",
+       tag:"Dvojstranový certifikát pravosti · EN / UA / SK · PDF + QR" }
+};
+const FORM_HINT = {
+  en:'<b>Save as PDF</b> opens the print dialog → choose destination <b>“Save as PDF”</b> for crisp, selectable text (2 pages). Tip: in <i>More settings</i> set <i>Margins: None</i> and turn off <i>Headers and footers</i> (one-time). <b>Send PDF</b> shares a ready file.',
+  uk:'<b>Зберегти як PDF</b> відкриває діалог друку → обери <b>«Зберегти як PDF»</b> для чіткого тексту (2 сторінки). Порада: у <i>Додаткових налаштуваннях</i> постав <i>Поля: Немає</i> і вимкни <i>Колонтитули</i> (одноразово). <b>Надіслати PDF</b> ділиться готовим файлом.',
+  sk:'<b>Uložiť ako PDF</b> otvorí dialóg tlače → vyberte <b>„Uložiť ako PDF“</b> pre ostrý text (2 strany). Tip: v <i>Ďalších nastaveniach</i> nastavte <i>Okraje: Žiadne</i> a vypnite <i>Hlavičky a päty</i> (jednorazovo). <b>Odoslať PDF</b> zdieľa hotový súbor.'
+};
+function applyFormLang(){
+  const dict = FORM_I18N[LANG] || FORM_I18N.en;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k = el.getAttribute('data-i18n');
+    el.textContent = dict[k] || FORM_I18N.en[k] || el.textContent;
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    const k = el.getAttribute('data-i18n-ph');
+    el.placeholder = dict[k] || FORM_I18N.en[k] || el.placeholder;
+  });
+  const hint = document.getElementById('hint-pdf');
+  if(hint) hint.innerHTML = FORM_HINT[LANG] || FORM_HINT.en;
+}
+
 let LANG = 'en';
 let artworkImg = '';                 // dataURL of uploaded artwork
 const $ = id => document.getElementById(id);
@@ -412,6 +465,7 @@ function setLang(l){
   $('tab-en').classList.toggle('on', l==='en');
   $('tab-uk').classList.toggle('on', l==='uk');
   $('tab-sk').classList.toggle('on', l==='sk');
+  applyFormLang();
   consentText();
   render();
 }
@@ -635,6 +689,7 @@ function declineConsent(){ if(window.ArtCOAAnalytics) ArtCOAAnalytics.setConsent
 function openPrivacy(){ consentText(); showConsent(); }
 
 // defaults
+applyFormLang();
 render();
 consentText();
 if(!window.ArtCOAAnalytics || !ArtCOAAnalytics.consent()) showConsent();
