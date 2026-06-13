@@ -611,14 +611,42 @@ function onArtist(){
 }
 function editionLabel(d){ return (d.en||'—') + (d.et ? ' / '+d.et : ''); }
 
-function buildLink(d){
+// Cryptographic signature: HMAC-SHA256 (WebCrypto). Without the secret key a valid
+// signature is computationally infeasible to forge (unlike the old non-crypto hash).
+function bufToB64url(buf){
+  const b = new Uint8Array(buf); let s='';
+  for(let i=0;i<b.length;i++) s += String.fromCharCode(b[i]);
+  return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+async function hmacSign(message, secret){
+  const enc = new TextEncoder();
+  // empty secret → a fixed public placeholder key (cert readable but not protected)
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret || 'artcoa-unsigned'),
+    {name:'HMAC', hash:'SHA-256'}, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(message));
+  return bufToB64url(sig);
+}
+async function buildLink(d){
   const payload = {...d, sn:certId(d)};
-  payload.sg = sigHash(JSON.stringify(payload)+'::'+$('secret').value);
+  const msg = JSON.stringify(payload);                 // signed message = payload without sg
+  payload.sg = await hmacSign(msg, $('secret').value);
   const base = $('vbase').value.trim() || 'verify.html';
   return base + '#' + encodeData(payload);
 }
 
-let qr;
+let qr, currentLink = '', qrSeq = 0, qrTimer = null;
+// Re-sign + redraw the QR (debounced, since signing is async and runs on each keystroke)
+async function refreshQR(){
+  const seq = ++qrSeq;
+  let link;
+  try { link = await buildLink(collect()); } catch(e){ return; }
+  if(seq !== qrSeq) return;                              // superseded by a newer edit
+  currentLink = link;
+  $('qrbox').innerHTML = '';
+  qr = new QRCode($('qrbox'), {text:link, width:512, height:512,
+       colorDark:'#000000', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.M});
+}
+function scheduleQR(){ clearTimeout(qrTimer); qrTimer = setTimeout(refreshQR, 250); }
 function render(){
   // edition code follows the status (read before collect() reads it)
   $('editionCode').value = STATUS_CODE[$('status').value] || '';
@@ -667,10 +695,8 @@ function render(){
   if(artworkImg){ art.innerHTML = '<img src="'+artworkImg+'" alt="artwork">'; }
   else { art.innerHTML = '<div class="ph">'+(LANG==='uk'?'Тут буде зображення твору':'Artwork image will appear here')+'</div>'; }
 
-  // QR — high-res render, displayed at 128px, crisp in PDF
-  $('qrbox').innerHTML='';
-  qr = new QRCode($('qrbox'),{text:buildLink(d),width:512,height:512,
-       colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+  // QR carries a fresh HMAC signature → rebuilt asynchronously (debounced)
+  scheduleQR();
 
   fitPreview();
 }
@@ -738,12 +764,14 @@ function trackUse(action){
   catch(e){}
 }
 // Save → browser print (real vector text = crisp & selectable). Choose "Save as PDF".
-function makePDF(){
+async function makePDF(){
+  await refreshQR();              // ensure the printed QR carries a fresh HMAC signature
   trackUse('save');
   window.print();
 }
 function sendPDF(){
   return withPdfBtn('sendbtn', async()=>{
+    await refreshQR();            // ensure the embedded QR is freshly signed
     const {blob, filename} = await generatePdfFile();
     const file = new File([blob], filename, {type:'application/pdf'});
     if(navigator.canShare && navigator.canShare({files:[file]})){
@@ -753,7 +781,7 @@ function sendPDF(){
       trackUse('send');
     } else {
       downloadBlob(blob, filename);
-      const d = collect(), link = buildLink(d);
+      const d = collect(), link = currentLink || await buildLink(d);
       const subject = encodeURIComponent('Certificate of Authenticity — ' + (d.ti||''));
       const body = encodeURIComponent('Hello,\n\nPlease find attached the Certificate of Authenticity ('+filename+').\nVerify online: '+link+'\n\n');
       trackUse('send');
@@ -762,8 +790,8 @@ function sendPDF(){
     }
   });
 }
-function copyLink(){
-  const link = buildLink(collect());
+async function copyLink(){
+  const link = await buildLink(collect());
   const ok   = ()=>{ $('copied').textContent='✓ Verification link copied to clipboard.'; setTimeout(()=>$('copied').textContent='',3000); };
   const legacy = ()=>{
     try{
@@ -802,6 +830,7 @@ function todayStr(){
 $('issued').value = todayStr();
 applyFormLang();
 render();
+refreshQR();          // draw the signed QR immediately on load
 consentText();
 if(!window.ArtCOAAnalytics || !ArtCOAAnalytics.consent()) showConsent();
 </script>

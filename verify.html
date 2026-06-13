@@ -159,40 +159,39 @@ function decodeData(str){
   const json = new TextDecoder().decode(bytes);
   return JSON.parse(json);
 }
-function sigHash(str){
-  let h=5381; for(let i=0;i<str.length;i++){h=((h<<5)+h)+str.charCodeAt(i);h=h>>>0;}
-  return h.toString(16).padStart(8,'0');
+// HMAC-SHA256 signature verification (must match the generator's hmacSign exactly)
+function bufToB64url(buf){
+  const b=new Uint8Array(buf); let s='';
+  for(let i=0;i<b.length;i++) s+=String.fromCharCode(b[i]);
+  return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+async function hmacSign(message, secret){
+  const enc=new TextEncoder();
+  // empty secret → same fixed public placeholder key as the generator
+  const key=await crypto.subtle.importKey('raw', enc.encode(secret || 'artcoa-unsigned'), {name:'HMAC',hash:'SHA-256'}, false, ['sign']);
+  const sig=await crypto.subtle.sign('HMAC', key, enc.encode(message));
+  return bufToB64url(sig);
 }
 
 function rowHTML(k,v){ return v ? `<div class="row"><span class="k">${k}</span><span class="v">${esc(v)}</span></div>` : ''; }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
-function checkSig(d, key){
-  const stored = d.sg;
-  const copy = {...d}; delete copy.sg;
-  const calc = sigHash(JSON.stringify(copy)+'::'+key);
+async function checkSig(d, key){
+  const copy = {...d}; const stored = copy.sg; delete copy.sg;
+  if(!stored) return false;
+  let calc; try{ calc = await hmacSign(JSON.stringify(copy), key); }catch(e){ return false; }
   return calc === stored;
 }
 
 function render(d, lang){
   const t = T[lang] || T.en;
   document.documentElement.lang = lang;
-
-  let statusClass='unsigned', statusTitle=t.unsigned, statusSub=t.unsignedSub;
-  // try with empty key first (cert generated without a secret)
-  if(d.sg && checkSig(d,'')){ statusClass='valid'; statusTitle=t.valid; statusSub=t.validSub; }
-
-  const keyBox = (statusClass!=='valid') ? `
-    <div class="verify-key">
-      <label>${t.keylabel}</label>
-      <input id="keyin" placeholder="••••••" oninput="recheck()">
-      <p>${t.keyhint}</p>
-    </div>` : '';
+  window._cert = d; window._lang = lang;
 
   document.getElementById('root').innerHTML = `
-    <div class="status ${statusClass}" id="statusbar">
+    <div class="status unsigned" id="statusbar">
       <span class="dot"></span>
-      <span class="txt"><b id="st-title">${statusTitle}</b><span id="st-sub">${statusSub}</span></span>
+      <span class="txt"><b id="st-title">${esc(t.verifying)}</b><span id="st-sub"></span></span>
     </div>
     <div class="card"><div class="ci">
       <div class="c-title">${vlab('eyebrow',lang)}</div>
@@ -215,20 +214,34 @@ function render(d, lang){
       <div class="rule"></div>
       <div class="disc">${t.disc}</div>
     </div></div>
-    ${keyBox}`;
+    <div class="verify-key" id="keybox">
+      <label>${t.keylabel}</label>
+      <input id="keyin" placeholder="••••••" oninput="recheck()">
+      <p>${t.keyhint}</p>
+    </div>`;
 
-  window._cert = d; window._lang = lang;
+  updateStatus('');   // async signature check with the empty key first
 }
 
-function recheck(){
-  const key = document.getElementById('keyin').value;
-  const d = window._cert, t = T[window._lang]||T.en;
-  const bar = document.getElementById('statusbar');
-  const ok = checkSig(d,key);
-  bar.className = 'status ' + (key==='' ? 'unsigned' : (ok?'valid':'invalid'));
-  document.getElementById('st-title').textContent = key==='' ? t.unsigned : (ok?t.valid:t.invalid);
-  document.getElementById('st-sub').textContent   = key==='' ? t.unsignedSub : (ok?t.validSub:t.invalidSub);
+function setBar(cls, title, sub){
+  const bar=document.getElementById('statusbar'); if(!bar) return;
+  bar.className='status '+cls;
+  document.getElementById('st-title').textContent=title;
+  document.getElementById('st-sub').textContent=sub;
 }
+function toggleKey(show){ const kb=document.getElementById('keybox'); if(kb) kb.style.display = show?'block':'none'; }
+
+async function updateStatus(key){
+  const d=window._cert, lang=window._lang, t=T[lang]||T.en;
+  if(!d || !d.sg){ setBar('unsigned', t.unsigned, t.unsignedSub); toggleKey(true); return; }
+  const ok = await checkSig(d, key);
+  let cls,title,sub;
+  if(key===''){ cls=ok?'valid':'unsigned'; title=ok?t.valid:t.unsigned; sub=ok?t.validSub:t.unsignedSub; }
+  else { cls=ok?'valid':'invalid'; title=ok?t.valid:t.invalid; sub=ok?t.validSub:t.invalidSub; }
+  setBar(cls,title,sub);
+  toggleKey(cls!=='valid');
+}
+function recheck(){ updateStatus(document.getElementById('keyin').value); }
 
 (function init(){
   const hash = location.hash.slice(1);

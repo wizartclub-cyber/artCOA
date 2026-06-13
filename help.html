@@ -99,7 +99,7 @@
 
     <h2>QR verification &amp; the secret key</h2>
     <p>Scanning the QR opens the verification page with the certificate data embedded in the link. To prove authenticity, the holder enters your <b>secret signature key</b>; if the signature matches, the page shows <b>“Authentic”</b>.</p>
-    <div class="note"><b>Honest limitation.</b> This is demand validation, not cryptographic protection: the data lives inside the QR link, and the secret key only deters casual tampering. A future server version will add a central registry and revocation.</div>
+    <div class="note"><b>Security.</b> Certificates are signed with <b>HMAC-SHA256</b>: without the secret key a valid signature is computationally infeasible to forge, and any change to the data invalidates it (tamper-evident). <b>Limitations:</b> verification is symmetric (the holder needs the key), the data still travels inside the QR link, and there is no central registry / revocation yet — that comes with the server version.</div>
 
     <h2>Languages</h2>
     <p>The interface and form appear in the selected language. On the certificate itself, labels are English for English, and bilingual (<i>“selected / English”</i>) for Ukrainian and Slovak.</p>
@@ -152,7 +152,7 @@
 
     <h2>Перевірка через QR і секретний ключ</h2>
     <p>Сканування QR відкриває сторінку перевірки з даними сертифіката в посиланні. Щоб довести справжність, власник вводить ваш <b>секретний ключ підпису</b>; якщо підпис збігається — показується <b>«Автентичний»</b>.</p>
-    <div class="note"><b>Чесне обмеження.</b> Це валідація попиту, а не криптографічний захист: дані містяться в QR-посиланні, а секретний ключ лише ускладнює підробку. Майбутня серверна версія додасть центральний реєстр і відкликання.</div>
+    <div class="note"><b>Безпека.</b> Сертифікати підписуються <b>HMAC-SHA256</b>: без секретного ключа підробити дійсний підпис криптографічно неможливо, а будь-яка зміна даних робить підпис недійсним (виявлення підробки). <b>Обмеження:</b> перевірка симетрична (власнику потрібен ключ), дані досі в QR-посиланні, і поки немає центрального реєстру / відкликання — це буде в серверній версії.</div>
 
     <h2>Мови</h2>
     <p>Інтерфейс і форма показуються обраною мовою. На самому сертифікаті підписи англійською — для англійської, і двомовні (<i>«обрана / English»</i>) — для української та словацької.</p>
@@ -205,7 +205,7 @@
 
     <h2>Overenie cez QR a tajný kľúč</h2>
     <p>Naskenovanie QR otvorí overovaciu stránku s údajmi certifikátu v odkaze. Na preukázanie pravosti držiteľ zadá váš <b>tajný podpisový kľúč</b>; ak sa podpis zhoduje, zobrazí sa <b>„Pravé“</b>.</p>
-    <div class="note"><b>Čestné obmedzenie.</b> Ide o overenie dopytu, nie kryptografickú ochranu: údaje sú v QR odkaze a tajný kľúč len sťažuje falšovanie. Budúca serverová verzia pridá centrálny register a zrušenie.</div>
+    <div class="note"><b>Bezpečnosť.</b> Certifikáty sú podpísané <b>HMAC-SHA256</b>: bez tajného kľúča je sfalšovanie platného podpisu výpočtovo neuskutočniteľné a akákoľvek zmena údajov podpis zneplatní (odhalenie manipulácie). <b>Obmedzenia:</b> overenie je symetrické (držiteľ potrebuje kľúč), údaje sú stále v QR odkaze a zatiaľ nie je centrálny register / zrušenie — to príde so serverovou verziou.</div>
 
     <h2>Jazyky</h2>
     <p>Rozhranie a formulár sa zobrazujú vo zvolenom jazyku. Na samotnom certifikáte sú popisy v angličtine pre angličtinu a dvojjazyčné (<i>„zvolený / English“</i>) pre ukrajinčinu a slovenčinu.</p>
