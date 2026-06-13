@@ -68,6 +68,7 @@
       <thead><tr>
         <th data-k="ts">Time</th>
         <th data-k="action">Action</th>
+        <th data-k="category">Category</th>
         <th data-k="serial">Serial</th>
         <th data-k="artist">Artist</th>
         <th data-k="title">Title</th>
@@ -118,7 +119,7 @@ function filtered(){
   const q = $('q').value.trim().toLowerCase();
   let list = ROWS;
   if(q){
-    list = list.filter(r => [r.artist,r.title,r.serial,r.ip,r.country,r.city,r.org,r.status,r.editionId]
+    list = list.filter(r => [r.artist,r.title,r.serial,r.ip,r.country,r.city,r.org,r.status,r.editionId,r.category]
       .some(v => String(v||'').toLowerCase().includes(q)));
   }
   list = list.slice().sort((a,b)=>{
@@ -134,10 +135,11 @@ function filtered(){
 function render(){
   stats();
   const list = filtered();
-  if(!list.length){ $('tb').innerHTML = '<tr><td class="empty" colspan="16">No events yet.</td></tr>'; return; }
+  if(!list.length){ $('tb').innerHTML = '<tr><td class="empty" colspan="17">No events yet.</td></tr>'; return; }
   $('tb').innerHTML = list.map(r=>`<tr>
     <td>${esc(fmt(r.ts))}</td>
     <td><span class="tag ${esc(r.action)}">${esc(r.action)}</span></td>
+    <td>${esc(r.category)}</td>
     <td>${esc(r.serial)}</td>
     <td>${esc(r.artist)}</td>
     <td>${esc(r.title)}</td>
@@ -163,7 +165,7 @@ function clearLocal(){
 }
 
 function exportCSV(){
-  const cols = ['ts','action','serial','artist','title','year','technique','support','sheet','area',
+  const cols = ['ts','action','category','serial','artist','title','year','technique','support','sheet','area',
     'status','editionId','editionNo','editionTotal','gallery','issued','lang',
     'ip','city','region','country','org','visitorId'];
   const devCols = ['userAgent','platform','language','screen','viewport','dpr','timezone','referrer'];

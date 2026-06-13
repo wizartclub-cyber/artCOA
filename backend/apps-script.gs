@@ -26,7 +26,8 @@ var HEADERS = [
   'Sheet size', 'Artwork area', 'Status Edition', 'Edition ID', 'Edition no', 'Edition total',
   'Gallery', 'Issued', 'Lang',
   'IP', 'City', 'Region', 'Country', 'ISP/Org', 'VisitorID',
-  'UserAgent', 'Platform', 'Language', 'Screen', 'Viewport', 'DPR', 'Timezone', 'Referrer'
+  'UserAgent', 'Platform', 'Language', 'Screen', 'Viewport', 'DPR', 'Timezone', 'Referrer',
+  'Category'
 ];
 
 function getSheet_() {
@@ -60,7 +61,8 @@ function doPost(e) {
       d.gallery || '', d.issued || '', d.lang || '',
       d.ip || '', d.city || '', d.region || '', d.country || '', d.org || '', d.visitorId || '',
       dev.userAgent || '', dev.platform || '', dev.language || '', dev.screen || '',
-      dev.viewport || '', dev.dpr || '', dev.timezone || '', dev.referrer || ''
+      dev.viewport || '', dev.dpr || '', dev.timezone || '', dev.referrer || '',
+      d.category || ''
     ]);
     return ContentService
       .createTextOutput(JSON.stringify({ ok: true }))

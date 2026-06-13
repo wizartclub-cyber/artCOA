@@ -88,6 +88,7 @@
 
   .c-title{text-align:center;font-size:18px;font-weight:700;letter-spacing:.01em;white-space:nowrap}
   .c-id{text-align:center;font-size:13px;color:#333;margin-top:8px;letter-spacing:.02em}
+  .c-status{text-align:center;font-size:15px;font-weight:700;color:#111;margin-top:12px;letter-spacing:.01em}
 
   .rows{margin-top:30px}
   .r{display:flex;align-items:baseline;padding:7px 0;font-size:14px}
@@ -178,7 +179,7 @@
       </div>
       <div class="field">
         <label data-i18n="lStatus">Status edition</label>
-        <select id="status" onchange="render()">
+        <select id="status" onchange="onCatStatus()">
           <option>Limited Edition</option>
           <option selected>Hand-embellished Limited Edition</option>
           <option>Open Edition</option>
@@ -188,6 +189,19 @@
           <option>Reproduction</option>
         </select>
       </div>
+    </div>
+    <div class="field">
+      <label data-i18n="lCategory">Category</label>
+      <select id="category" onchange="onCatStatus()">
+        <option value="PTG" data-i18n="catPTG">Paintings</option>
+        <option value="DRW" data-i18n="catDRW">Drawings &amp; Works on Paper</option>
+        <option value="MIX" selected data-i18n="catMIX">Mixed Media &amp; Phygital Art</option>
+        <option value="PRN" data-i18n="catPRN">Prints &amp; Multiples</option>
+        <option value="SCL" data-i18n="catSCL">Sculptures &amp; 3D Objects</option>
+        <option value="PHO" data-i18n="catPHO">Photography</option>
+        <option value="DIG" data-i18n="catDIG">Digital Art</option>
+        <option value="DEC" data-i18n="catDEC">Design &amp; Decorative Art</option>
+      </select>
     </div>
     <div class="field">
       <label data-i18n="lTechnique">Technique</label>
@@ -302,10 +316,12 @@
           <div class="content">
             <div class="c-title" id="p1-title">Certificate of Authenticity</div>
             <div class="c-id" id="p1-id">—</div>
+            <div class="c-status" id="p-editionStatus"></div>
             <div class="rows">
               <div class="r"><span class="rl" id="l-artist">Artist:</span><span class="rv" id="v-artist">—</span></div>
               <div class="r"><span class="rl" id="l-title">Title of artwork:</span><span class="rv" id="v-title">—</span></div>
               <div class="r"><span class="rl" id="l-year">Year:</span><span class="rv" id="v-year">—</span></div>
+              <div class="r"><span class="rl" id="l-category">Category:</span><span class="rv" id="v-category">—</span></div>
               <div class="r"><span class="rl" id="l-technique">Technique:</span><span class="rv" id="v-technique">—</span></div>
               <div class="r"><span class="rl" id="l-support">Support:</span><span class="rv" id="v-support">—</span></div>
               <div class="r"><span class="rl" id="l-sheet">Sheet size:</span><span class="rv" id="v-sheet">—</span></div>
@@ -384,15 +400,15 @@ const T = {
 // Certificate labels (no colon). EN is the base; UK/SK are shown as "<selected> / English".
 const LBL = {
   en:{ coa:"Certificate of Authenticity", ident:"Artwork Identification", artist:"Artist",
-       title:"Title of artwork", year:"Year", technique:"Technique", support:"Support",
+       title:"Title of artwork", year:"Year", category:"Category", technique:"Technique", support:"Support",
        sheet:"Sheet size", area:"Artwork area", status:"Status Edition", editionId:"Edition ID",
        editionNo:"Edition number", artistSign:"Artist's signature", date:"Date", signWord:"signature" },
   uk:{ coa:"Сертифікат автентичності", ident:"Ідентифікація твору", artist:"Художник",
-       title:"Назва твору", year:"Рік", technique:"Техніка", support:"Основа",
+       title:"Назва твору", year:"Рік", category:"Категорія", technique:"Техніка", support:"Основа",
        sheet:"Розмір аркуша", area:"Розмір зображення", status:"Статус видання", editionId:"ID видання",
        editionNo:"Номер у тиражі", artistSign:"Підпис художника", date:"Дата", signWord:"підпис" },
   sk:{ coa:"Certifikát pravosti", ident:"Identifikácia diela", artist:"Umelec",
-       title:"Názov diela", year:"Rok", technique:"Technika", support:"Podklad",
+       title:"Názov diela", year:"Rok", category:"Kategória", technique:"Technika", support:"Podklad",
        sheet:"Rozmer listu", area:"Plocha diela", status:"Stav edície", editionId:"ID edície",
        editionNo:"Číslo edície", artistSign:"Podpis umelca", date:"Dátum", signWord:"podpis" }
 };
@@ -419,6 +435,7 @@ const FORM_I18N = {
        lBaseUrl:"Verification page base URL", btnSave:"Save as PDF", btnSend:"Send PDF", btnCopy:"Copy verify link",
        phSecret:"keep private — same key verifies all your certificates",
        phDate:"dd.mm.yyyy", btnChoose:"Choose file", phNoFile:"No file selected", helpLink:"Help / How it works",
+       lCategory:"Category", catPTG:"Paintings", catDRW:"Drawings & Works on Paper", catMIX:"Mixed Media & Phygital Art", catPRN:"Prints & Multiples", catSCL:"Sculptures & 3D Objects", catPHO:"Photography", catDIG:"Digital Art", catDEC:"Design & Decorative Art",
        tag:"Two-page Certificate of Authenticity · EN / UA / SK · PDF + QR verification" },
   uk:{ secDetails:"Дані сертифіката", secEdition:"ID видання (авто)",
        secPage2:"Сторінка 2 — Твір", secVerify:"Перевірка", secPreview:"Перегляд · A4 ×2",
@@ -430,6 +447,7 @@ const FORM_I18N = {
        lBaseUrl:"Базова URL сторінки перевірки", btnSave:"Зберегти як PDF", btnSend:"Надіслати PDF", btnCopy:"Копіювати лінк",
        phSecret:"тримайте в таємниці — один ключ підтверджує всі ваші сертифікати",
        phDate:"дд.мм.рррр", btnChoose:"Вибрати файл", phNoFile:"Файл не вибрано", helpLink:"Довідка / Як це працює",
+       lCategory:"Категорія", catPTG:"Живопис", catDRW:"Графіка та Малюнок", catMIX:"Змішана техніка та Фіджитал-арт", catPRN:"Тиражна графіка / Естамп", catSCL:"Скульптура та Об'ємні форми", catPHO:"Фотографія", catDIG:"Цифрове мистецтво", catDEC:"Предмети дизайну та Декор",
        tag:"Двосторінковий сертифікат автентичності · EN / UA / SK · PDF + QR" },
   sk:{ secDetails:"Údaje certifikátu", secEdition:"ID edície (auto)",
        secPage2:"Strana 2 — Dielo", secVerify:"Overenie", secPreview:"Náhľad · A4 ×2",
@@ -441,6 +459,7 @@ const FORM_I18N = {
        lBaseUrl:"Základná URL overovacej stránky", btnSave:"Uložiť ako PDF", btnSend:"Odoslať PDF", btnCopy:"Kopírovať odkaz",
        phSecret:"uchovajte v tajnosti — jeden kľúč overuje všetky vaše certifikáty",
        phDate:"dd.mm.rrrr", btnChoose:"Vybrať súbor", phNoFile:"Žiadny súbor", helpLink:"Pomoc / Ako to funguje",
+       lCategory:"Kategória", catPTG:"Maľba", catDRW:"Kresba a práce na papieri", catMIX:"Zmiešané médiá a fygitálne umenie", catPRN:"Grafika a multiply", catSCL:"Sochy a 3D objekty", catPHO:"Fotografia", catDIG:"Digitálne umenie", catDEC:"Dizajn a dekoratívne umenie",
        tag:"Dvojstranový certifikát pravosti · EN / UA / SK · PDF + QR" }
 };
 // Legally-correct copyright footer (localized). Gallery name links to the site.
@@ -487,6 +506,55 @@ const STATUS_CODE = {
   'Reproduction':'REP'
 };
 
+// International art-market categories (code → English name printed on the certificate)
+const CAT_EN = {
+  PTG:'Paintings', DRW:'Drawings & Works on Paper', MIX:'Mixed Media & Phygital Art',
+  PRN:'Prints & Multiples', SCL:'Sculptures & 3D Objects', PHO:'Photography',
+  DIG:'Digital Art', DEC:'Design & Decorative Art'
+};
+function categoryLabel(d){ return d.cat ? (d.cat + ' — ' + (CAT_EN[d.cat] || '')) : ''; }
+
+// Medium placeholder hints by category (per UI language) — a hint only, never auto-filled
+const MEDIUM_HINT = {
+  en:{ PTG:'Oil on canvas', DRW:'Watercolour and ink on archival paper', MIX:'Giclée on canvas, hand-embellished with acrylic and gold leaf', PRN:'Linocut on cotton paper, edition of 20', SCL:'Cast bronze, patinated', PHO:'Archival pigment print on fine art paper', DIG:'Digital painting, generative art (pure file / print)', DEC:'Hand-thrown art ceramic, glazed' },
+  uk:{ PTG:'Олія, полотно', DRW:'Акварель і туш на архівному папері', MIX:'Жикле на полотні, ручне доопрацювання акрилом і поталлю', PRN:'Ліногравюра на бавовняному папері, тираж 20', SCL:'Бронзове лиття, патинування', PHO:'Архівний пігментний друк на художньому папері', DIG:'Цифровий живопис, генеративне мистецтво (файл / друк)', DEC:'Художня кераміка ручної роботи, глазурована' },
+  sk:{ PTG:'Olej na plátne', DRW:'Akvarel a tuš na archívnom papieri', MIX:'Giclée na plátne, ručne dotvorené akrylom a zlatým plátkom', PRN:'Linoryt na bavlnenom papieri, edícia 20', SCL:'Liaty bronz, patinovaný', PHO:'Archívna pigmentová tlač na výtvarnom papieri', DIG:'Digitálna maľba, generatívne umenie (súbor / tlač)', DEC:'Ručne točená umelecká keramika, glazovaná' }
+};
+
+// Explicit edition-status line (uniqueness) — the main price-driving fact
+const EDITION_STATUS = {
+  unique:{ en:'Unique piece (1/1)', uk:'Унікальний твір (1/1)', sk:'Unikátne dielo (1/1)' },
+  limited:{
+    en:(c,t)=>'Limited Edition — copy '+c+' of '+t,
+    uk:(c,t)=>'Обмежений тираж — примірник '+c+' із '+t,
+    sk:(c,t)=>'Obmedzená edícia — kópia '+c+' z '+t
+  }
+};
+function editionStatusText(d){
+  const et=d.et, en=d.en, se=d.se;
+  let baseEn, baseSel;
+  if(et==='1' || (!et && se==='Original')){
+    baseEn  = EDITION_STATUS.unique.en;
+    baseSel = EDITION_STATUS.unique[LANG] || baseEn;
+  } else if(et){
+    const c = en || '?';
+    baseEn  = EDITION_STATUS.limited.en(c, et);
+    baseSel = (EDITION_STATUS.limited[LANG] || EDITION_STATUS.limited.en)(c, et);
+  } else {
+    return '';
+  }
+  return (LANG==='en') ? baseEn : (baseSel + ' / ' + baseEn);
+}
+
+// Gentle default: choosing MIX + a hand-embellished status suggests a 1/1 edition (only if empty)
+function onCatStatus(){
+  if($('category').value==='MIX' && /Hand-embellished/i.test($('status').value)
+     && !$('editionTotal').value.trim() && !$('editionNo').value.trim()){
+    $('editionTotal').value = '1'; $('editionNo').value = '1';
+  }
+  render();
+}
+
 function setLang(l){
   LANG = l;
   $('tab-en').classList.toggle('on', l==='en');
@@ -512,7 +580,7 @@ function collect(){
   const d = {
     ar:$('artist').value.trim(), ti:$('title').value.trim(), yr:$('year').value.trim(),
     te:$('technique').value.trim(), su:$('support').value.trim(), ss:$('sheet').value.trim(),
-    aa:$('area').value.trim(), se:$('status').value,
+    aa:$('area').value.trim(), se:$('status').value, cat:$('category').value,
     ini:$('initials').value.trim(), no:$('artworkNo').value.trim(),
     code:$('editionCode').value.trim(), cm:$('sizeCm').value.trim(),
     et:$('editionTotal').value.trim(), en:$('editionNo').value.trim(),
@@ -585,6 +653,14 @@ function render(){
   $('v-title2').textContent = d.ti||'—';    $('v-editionId2').textContent = d.ei||'—';
   $('v-editionNo2').textContent = editionLabel(d);
   $('v-date').textContent = d.is || '';
+
+  // category row + explicit edition status + medium placeholder hint
+  $('l-category').textContent = lab('category')+':';
+  $('v-category').textContent = categoryLabel(d) || '—';
+  const es = editionStatusText(d);
+  $('p-editionStatus').textContent = es;
+  $('p-editionStatus').style.display = es ? 'block' : 'none';
+  $('technique').placeholder = (MEDIUM_HINT[LANG] || MEDIUM_HINT.en)[d.cat] || 'Oil on canvas';
 
   // artwork image
   const art = $('artwork');

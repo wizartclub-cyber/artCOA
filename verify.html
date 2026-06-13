@@ -47,6 +47,7 @@
   .c-title{text-align:center;font-size:17px;font-weight:700;letter-spacing:.01em;line-height:1.35}
   .c-id{text-align:center;font-size:12.5px;color:#333;margin-top:8px;
         font-family:'Courier New',monospace}
+  .c-status{text-align:center;font-size:15px;font-weight:700;color:#111;margin-top:10px}
   .rule{height:1px;background:var(--line);margin:20px 0}
   .row{display:flex;justify-content:space-between;gap:14px;padding:7px 0;font-size:14px;
        align-items:baseline;flex-wrap:wrap}
@@ -82,7 +83,7 @@ const T = {
     unsigned:"Certificate readable — signature not checked", unsignedSub:"Enter the artist's key below to confirm the signature.",
     invalid:"Signature does not match", invalidSub:"This certificate may have been altered or the key is wrong.",
     nodata:"No certificate data found in this link.",
-    eyebrow:"Certificate of Authenticity", title:"Title of artwork",
+    eyebrow:"Certificate of Authenticity", title:"Title of artwork", category:"Category",
     artist:"Artist",year:"Year",technique:"Technique",support:"Support",
     sheet:"Sheet size",area:"Artwork area",status:"Status Edition",
     editionId:"Edition ID",editionNo:"Edition number",gallery:"Gallery",
@@ -96,7 +97,7 @@ const T = {
     unsigned:"Сертифікат читається — підпис не перевірено", unsignedSub:"Введіть ключ художника нижче, щоб підтвердити підпис.",
     invalid:"Підпис не співпадає", invalidSub:"Сертифікат міг бути змінений або введено невірний ключ.",
     nodata:"У цьому посиланні немає даних сертифіката.",
-    eyebrow:"Сертифікат автентичності", title:"Назва твору",
+    eyebrow:"Сертифікат автентичності", title:"Назва твору", category:"Категорія",
     artist:"Художник",year:"Рік",technique:"Техніка",support:"Основа",
     sheet:"Розмір аркуша",area:"Розмір зображення",status:"Статус видання",
     editionId:"ID видання",editionNo:"Номер у тиражі",gallery:"Галерея",
@@ -110,7 +111,7 @@ const T = {
     unsigned:"Certifikát čitateľný — podpis neoverený", unsignedSub:"Zadajte kľúč umelca nižšie na potvrdenie podpisu.",
     invalid:"Podpis sa nezhoduje", invalidSub:"Tento certifikát mohol byť zmenený alebo je kľúč nesprávny.",
     nodata:"V tomto odkaze nie sú údaje certifikátu.",
-    eyebrow:"Certifikát pravosti", title:"Názov diela",
+    eyebrow:"Certifikát pravosti", title:"Názov diela", category:"Kategória",
     artist:"Umelec",year:"Rok",technique:"Technika",support:"Podklad",
     sheet:"Rozmer listu",area:"Plocha diela",status:"Stav edície",
     editionId:"ID edície",editionNo:"Číslo edície",gallery:"Galéria",
@@ -125,6 +126,29 @@ function vlab(key, lang){
   const en = T.en[key];
   if(lang==='en' || !T[lang]) return en;
   return T[lang][key] + ' / ' + en;
+}
+
+// Category (code → English name) and explicit edition status — backward-compatible (optional fields)
+const CAT_EN = {
+  PTG:'Paintings', DRW:'Drawings & Works on Paper', MIX:'Mixed Media & Phygital Art',
+  PRN:'Prints & Multiples', SCL:'Sculptures & 3D Objects', PHO:'Photography',
+  DIG:'Digital Art', DEC:'Design & Decorative Art'
+};
+function catLabel(d){ return d.cat ? (d.cat + ' — ' + (CAT_EN[d.cat] || '')) : ''; }
+const EDITION_STATUS = {
+  unique:{ en:'Unique piece (1/1)', uk:'Унікальний твір (1/1)', sk:'Unikátne dielo (1/1)' },
+  limited:{
+    en:(c,t)=>'Limited Edition — copy '+c+' of '+t,
+    uk:(c,t)=>'Обмежений тираж — примірник '+c+' із '+t,
+    sk:(c,t)=>'Obmedzená edícia — kópia '+c+' z '+t
+  }
+};
+function editionStatusText(d, lang){
+  const et=d.et, en=d.en, se=d.se; let baseEn, baseSel;
+  if(et==='1' || (!et && se==='Original')){ baseEn=EDITION_STATUS.unique.en; baseSel=EDITION_STATUS.unique[lang]||baseEn; }
+  else if(et){ const c=en||'?'; baseEn=EDITION_STATUS.limited.en(c,et); baseSel=(EDITION_STATUS.limited[lang]||EDITION_STATUS.limited.en)(c,et); }
+  else return '';
+  return (lang==='en') ? baseEn : (baseSel + ' / ' + baseEn);
 }
 
 function decodeData(str){
@@ -173,10 +197,12 @@ function render(d, lang){
     <div class="card"><div class="ci">
       <div class="c-title">${vlab('eyebrow',lang)}</div>
       <div class="c-id">${esc(d.sn||'')}</div>
+      ${editionStatusText(d,lang) ? `<div class="c-status">${esc(editionStatusText(d,lang))}</div>` : ''}
       <div class="rule"></div>
       ${rowHTML(vlab('artist',lang),d.ar)}
       ${rowHTML(vlab('title',lang),d.ti)}
       ${rowHTML(vlab('year',lang),d.yr)}
+      ${rowHTML(vlab('category',lang),catLabel(d))}
       ${rowHTML(vlab('technique',lang),d.te)}
       ${rowHTML(vlab('support',lang),d.su)}
       ${rowHTML(vlab('sheet',lang),d.ss)}

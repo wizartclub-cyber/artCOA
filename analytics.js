@@ -21,6 +21,11 @@
   // Leave '' to log locally only (visible in admin.html on THIS device/browser).
   var ANALYTICS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzG71Vmg633_8_wM7i9QcIGzwb8Zg-_1LLWhrNytw4UISW9bHwLrZyo02-MEP_CRiNkwQ/exec';
 
+  // GDPR: collect personal/identifying data (artist & title NAMES, IP/geolocation)?
+  // OFF by default → only an anonymous event (category, edition status, language, device) is sent.
+  // Set to true only with a proper privacy policy + lawful basis.
+  var COLLECT_PII = false;
+
   // Public IP + geo lookup (no API key, CORS-enabled). Swap if you prefer.
   var IP_LOOKUP_URL = 'https://ipwho.is/';
 
@@ -112,27 +117,35 @@
   function track(cert, action) {
     if (consent() !== 'granted') return Promise.resolve(false); // no consent → collect nothing
     cert = cert || {};
+    var pii = COLLECT_PII;
     var base = {
       ts:           new Date().toISOString(),
       action:       action || 'generate',
       visitorId:    visitorId(),
-      serial:       cert.sn || '',
-      artist:       cert.ar || '',
-      title:        cert.ti || '',
-      year:         cert.yr || '',
-      technique:    cert.te || '',
-      support:      cert.su || '',
-      sheet:        cert.ss || '',
-      area:         cert.aa || '',
+      // ── anonymous (always): market segment, not a person ──
+      category:     cert.cat || '',
       status:       cert.se || '',
-      editionId:    cert.ei || '',
       editionNo:    cert.en || '',
       editionTotal: cert.et || '',
-      gallery:      cert.gl || '',
-      issued:       cert.is || '',
       lang:         cert.ln || '',
-      device:       deviceInfo()
+      device:       deviceInfo(),
+      // ── identifying / personal (only when COLLECT_PII === true) ──
+      serial:       pii ? (cert.sn || '') : '',
+      artist:       pii ? (cert.ar || '') : '',
+      title:        pii ? (cert.ti || '') : '',
+      year:         pii ? (cert.yr || '') : '',
+      technique:    pii ? (cert.te || '') : '',
+      support:      pii ? (cert.su || '') : '',
+      sheet:        pii ? (cert.ss || '') : '',
+      area:         pii ? (cert.aa || '') : '',
+      editionId:    pii ? (cert.ei || '') : '',
+      gallery:      pii ? (cert.gl || '') : '',
+      issued:       pii ? (cert.is || '') : ''
     };
+    if (!pii) {                       // no IP/geolocation lookup at all when anonymous
+      saveLocal(base);
+      return sendRemote(base);
+    }
     return getNetwork().then(function (net) {
       var ev = Object.assign({}, base, net);
       saveLocal(ev);
