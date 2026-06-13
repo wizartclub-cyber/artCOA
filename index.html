@@ -80,12 +80,12 @@
   .frame2{position:absolute;inset:35px;border:1px solid #111}
   .content{position:absolute;inset:30px;padding:46px 52px;z-index:2;display:flex;flex-direction:column}
 
-  .c-title{text-align:center;font-size:22px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+  .c-title{text-align:center;font-size:18px;font-weight:700;letter-spacing:.01em;white-space:nowrap}
   .c-id{text-align:center;font-size:13px;color:#333;margin-top:8px;letter-spacing:.02em}
 
   .rows{margin-top:30px}
   .r{display:flex;align-items:baseline;padding:7px 0;font-size:14px}
-  .r .rl{width:232px;flex-shrink:0;font-weight:700}
+  .r .rl{width:250px;flex-shrink:0;font-weight:700}
   .r .rv{flex:1}
 
   .sign-area{display:flex;align-items:flex-end;gap:34px;margin-top:38px}
@@ -106,16 +106,43 @@
   .artwork .ph{width:100%;height:340px;border:1px dashed #cbcbcb;display:flex;align-items:center;
        justify-content:center;color:#aaa;font-size:13px;font-style:italic}
 
-  @media print{ body *{visibility:hidden} }
+  /* ---- print: crisp vector text, only the two certificate pages, one per sheet ---- */
+  @media print{
+    @page{ size:A4; margin:0 }
+    html,body{ background:#fff !important }
+    body *{ visibility:hidden !important }
+    #preview, #preview *{ visibility:visible !important }
+    #previewVp{ overflow:visible !important; height:auto !important }
+    #preview{ position:absolute; left:0; top:0; transform:none !important }
+    .page{ width:210mm; height:297mm; box-shadow:none !important; margin:0 !important;
+           page-break-after:always; break-after:page; overflow:hidden }
+    .page:last-child{ page-break-after:auto; break-after:auto }
+  }
+
+  /* ---- site header with gallery logo ---- */
+  .headrow{display:flex;align-items:center;gap:18px}
+  .logo-link{display:block;flex-shrink:0;line-height:0}
+  .logo-link img{height:56px;width:auto;display:block;border-radius:6px}
+
+  /* ---- site footer ---- */
+  .site-foot{border-top:1px solid var(--line);padding:24px;text-align:center;
+      font-size:13px;color:var(--stone)}
+  .site-foot a{color:var(--seal);text-decoration:none}
+  .site-foot a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
-<header><div class="wrap">
-  <div class="brand">
-    <span class="mark">◇ ArtCOA</span>
-    <h1>Certificate Studio</h1>
+<header><div class="wrap headrow">
+  <a class="logo-link" href="https://smalta.gallery/" target="_blank" rel="noopener" title="Smalta Art Gallery">
+    <img src="smalta-logo.jpg" alt="Smalta Art Gallery">
+  </a>
+  <div>
+    <div class="brand">
+      <span class="mark">◇ ArtCOA</span>
+      <h1>Certificate Studio</h1>
+    </div>
+    <p class="tag">Two-page Certificate of Authenticity · EN / UA / SK · PDF + QR verification</p>
   </div>
-  <p class="tag">Two-page Certificate of Authenticity · EN / UA · PDF + QR verification</p>
 </div></header>
 
 <div class="wrap"><div class="grid">
@@ -244,7 +271,7 @@
       <button class="btn" id="sendbtn" onclick="sendPDF()">Send PDF</button>
       <button class="btn ghost" onclick="copyLink()">Copy verify link</button>
     </div>
-    <p class="hint">Generates a clean 2-page A4 PDF (with crop marks) — no browser headers/footers. QR &amp; Cyrillic embedded.</p>
+    <p class="hint"><b>Save as PDF</b> opens the print dialog → choose destination <b>“Save as PDF”</b> for crisp, selectable text (2 pages). Tip: in <i>More settings</i> set <i>Margins: None</i> and turn off <i>Headers and footers</i> (one-time). <b>Send PDF</b> shares a ready file.</p>
     <p class="hint" id="copied"></p>
     <p class="hint"><a class="plink" id="privacy-link" onclick="openPrivacy()">Privacy &amp; data</a></p>
   </section>
@@ -313,6 +340,10 @@
   </section>
 
 </div></div>
+
+<footer class="site-foot">
+  Розроблено <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. Всі права захищено
+</footer>
 
 <!-- consent banner -->
 <div class="consent" id="consent" style="position:fixed;left:0;right:0;bottom:0;z-index:60;background:#1a1714;color:#f3f1ec;padding:16px 20px;display:none;box-shadow:0 -10px 34px -22px rgba(0,0,0,.7)">
@@ -548,12 +579,10 @@ function trackUse(action){
   try{ const d=collect(); if(window.ArtCOAAnalytics) ArtCOAAnalytics.track({...d, sn:certId(d)}, action); }
   catch(e){}
 }
+// Save → browser print (real vector text = crisp & selectable). Choose "Save as PDF".
 function makePDF(){
-  return withPdfBtn('pdfbtn', async()=>{
-    const {blob, filename} = await generatePdfFile();
-    downloadBlob(blob, filename);
-    trackUse('save');
-  });
+  trackUse('save');
+  window.print();
 }
 function sendPDF(){
   return withPdfBtn('sendbtn', async()=>{
