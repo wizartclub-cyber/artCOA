@@ -216,6 +216,7 @@
 
     <div class="actions">
       <button class="btn" id="pdfbtn" onclick="makePDF()">Save as PDF</button>
+      <button class="btn" id="sendbtn" onclick="sendPDF()">Send PDF</button>
       <button class="btn ghost" onclick="copyLink()">Copy verify link</button>
     </div>
     <p class="hint">Downloads a clean single-page A4 PDF — no browser headers or footers. The QR code and Cyrillic text are embedded.</p>
@@ -374,34 +375,80 @@ function copyLink(){
 // No browser print dialog → no page URL / timestamp / "Page X of Y" footer.
 // The whole certificate is scaled to fit one A4 page; Cyrillic and the QR render correctly.
 let pdfBusy = false;
-async function makePDF(){
+
+// Render the certificate to a one-page A4 PDF and return its blob + file name.
+async function generatePdfFile(){
+  const el = document.querySelector('.cert');
+  const canvas = await html2canvas(el, {scale:3, backgroundColor:'#ffffff', useCORS:true});
+  const {jsPDF} = window.jspdf;
+  const pdf = new jsPDF({unit:'mm', format:'a4', orientation:'portrait'});
+  const pw = pdf.internal.pageSize.getWidth();   // 210
+  const ph = pdf.internal.pageSize.getHeight();  // 297
+  const margin = 10, maxW = pw - margin*2, maxH = ph - margin*2;
+  const ratio = canvas.width / canvas.height;
+  let w = maxW, h = w / ratio;                    // fit width, then clamp to height
+  if(h > maxH){ h = maxH; w = h * ratio; }
+  const x = (pw - w)/2, y = (ph - h)/2;           // centre on the page
+  pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, w, h);
+  return { blob: pdf.output('blob'), filename: serial(collect()) + '.pdf' };
+}
+
+// Shared button-state wrapper so Save/Send share the same busy-guard + error handling.
+async function withPdfBtn(btnId, fn){
   if(pdfBusy) return;
   if(typeof html2canvas==='undefined' || !window.jspdf){
     alert('PDF libraries are still loading — please try again in a moment.');
     return;
   }
   pdfBusy = true;
-  const btn = $('pdfbtn'), label = btn.textContent;
+  const btn = $(btnId), label = btn.textContent;
   btn.textContent = 'Generating…'; btn.disabled = true;
-  try{
-    const el = document.querySelector('.cert');
-    const canvas = await html2canvas(el, {scale:3, backgroundColor:'#ffffff', useCORS:true});
-    const {jsPDF} = window.jspdf;
-    const pdf = new jsPDF({unit:'mm', format:'a4', orientation:'portrait'});
-    const pw = pdf.internal.pageSize.getWidth();   // 210
-    const ph = pdf.internal.pageSize.getHeight();  // 297
-    const margin = 10, maxW = pw - margin*2, maxH = ph - margin*2;
-    const ratio = canvas.width / canvas.height;
-    let w = maxW, h = w / ratio;                    // fit width, then clamp to height
-    if(h > maxH){ h = maxH; w = h * ratio; }
-    const x = (pw - w)/2, y = (ph - h)/2;           // centre on the page
-    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, w, h);
-    pdf.save(serial(collect()) + '.pdf');
-  }catch(e){
-    alert('Could not generate PDF: ' + e.message);
-  }finally{
-    btn.textContent = label; btn.disabled = false; pdfBusy = false;
-  }
+  try{ await fn(); }
+  catch(e){ alert('Could not generate PDF: ' + e.message); }
+  finally{ btn.textContent = label; btn.disabled = false; pdfBusy = false; }
+}
+
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+
+// Save → download the PDF.
+function makePDF(){
+  return withPdfBtn('pdfbtn', async()=>{
+    const {blob, filename} = await generatePdfFile();
+    downloadBlob(blob, filename);
+  });
+}
+
+// Send → share the PDF via the native share sheet (email, messengers, AirDrop…).
+// Falls back to download + email draft on browsers without file sharing (most desktops).
+function sendPDF(){
+  return withPdfBtn('sendbtn', async()=>{
+    const {blob, filename} = await generatePdfFile();
+    const file = new File([blob], filename, {type:'application/pdf'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{
+        await navigator.share({
+          files:[file],
+          title:'Certificate of Authenticity',
+          text:'Certificate of Authenticity ('+filename.replace(/\.pdf$/,'')+')'
+        });
+      }catch(e){ if(e.name !== 'AbortError') throw e; }  // user cancelled the sheet — not an error
+    } else {
+      downloadBlob(blob, filename);
+      const d = collect(), link = buildLink(d);
+      const subject = encodeURIComponent('Certificate of Authenticity — ' + (d.ti || ''));
+      const body = encodeURIComponent(
+        'Hello,\n\nPlease find attached the Certificate of Authenticity ('+filename+').\n'+
+        'Verify online: '+link+'\n\n');
+      alert('Direct sharing isn’t supported in this browser.\nThe PDF was downloaded and an email draft will open — attach the downloaded file to send it.');
+      window.location.href = 'mailto:?subject='+subject+'&body='+body;
+    }
+  });
 }
 
 // defaults
