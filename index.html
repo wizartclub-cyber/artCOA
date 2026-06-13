@@ -282,8 +282,14 @@
 
     <h2 class="sec" style="margin-top:28px" data-i18n="secVerify">Verification</h2>
     <div class="field">
-      <label data-i18n="lSecret">Your secret signature key</label>
-      <input id="secret" oninput="render()" data-i18n-ph="phSecret" placeholder="keep private — same key verifies all your certificates">
+      <label data-i18n="lSecret">Private signing key (ECDSA)</label>
+      <textarea id="secret" rows="2" oninput="onKeyInput()" data-i18n-ph="phSecret" placeholder="paste your private key (keys.html / gallery-private-key.txt)"></textarea>
+      <p class="hint" style="margin-top:6px">
+        <label style="display:inline;text-transform:none;letter-spacing:0;font-size:12px;color:var(--stone)">
+          <input type="checkbox" id="remember" onchange="onRemember()"> <span data-i18n="lRemember">Remember on this device</span></label>
+        &nbsp;·&nbsp; <span id="sigstatus"></span>
+        &nbsp;·&nbsp; <a class="plink" href="keys.html" target="_blank" rel="noopener" data-i18n="lKeys">Generate keys</a>
+      </p>
     </div>
     <div class="field">
       <label data-i18n="lBaseUrl">Verification page base URL</label>
@@ -431,9 +437,9 @@ const FORM_I18N = {
        lTechnique:"Technique", lSupport:"Support", lSheet:"Sheet size", lArea:"Artwork area",
        lInitials:"Initials", lArtworkNo:"Artwork no.", lEditionCode:"Code (auto)", lSizeCm:"Size cm",
        lEditionSize:"Edition size", lCopyNo:"Copy no.", lEditionId:"Edition ID (auto)", lCertNo:"Certificate no. (auto)",
-       lGallery:"Gallery", lDate:"Date (optional)", lImage:"Artwork image", lSecret:"Your secret signature key",
+       lGallery:"Gallery", lDate:"Date (optional)", lImage:"Artwork image", lSecret:"Private signing key (ECDSA)",
        lBaseUrl:"Verification page base URL", btnSave:"Save as PDF", btnSend:"Send PDF", btnCopy:"Copy verify link",
-       phSecret:"keep private — same key verifies all your certificates",
+       phSecret:"paste your private key — keep it secret", lRemember:"Remember on this device", lKeys:"Generate keys",
        phDate:"dd.mm.yyyy", btnChoose:"Choose file", phNoFile:"No file selected", helpLink:"Help / How it works",
        lCategory:"Category", catPTG:"Paintings", catDRW:"Drawings & Works on Paper", catMIX:"Mixed Media & Phygital Art", catPRN:"Prints & Multiples", catSCL:"Sculptures & 3D Objects", catPHO:"Photography", catDIG:"Digital Art", catDEC:"Design & Decorative Art",
        tag:"Two-page Certificate of Authenticity · EN / UA / SK · PDF + QR verification" },
@@ -443,9 +449,9 @@ const FORM_I18N = {
        lTechnique:"Техніка", lSupport:"Основа", lSheet:"Розмір аркуша", lArea:"Розмір зображення",
        lInitials:"Ініціали", lArtworkNo:"№ твору", lEditionCode:"Код (авто)", lSizeCm:"Розмір, см",
        lEditionSize:"Тираж", lCopyNo:"№ копії", lEditionId:"ID видання (авто)", lCertNo:"№ сертифіката (авто)",
-       lGallery:"Галерея", lDate:"Дата (необов'язково)", lImage:"Зображення твору", lSecret:"Секретний ключ підпису",
+       lGallery:"Галерея", lDate:"Дата (необов'язково)", lImage:"Зображення твору", lSecret:"Приватний ключ підпису (ECDSA)",
        lBaseUrl:"Базова URL сторінки перевірки", btnSave:"Зберегти як PDF", btnSend:"Надіслати PDF", btnCopy:"Копіювати лінк",
-       phSecret:"тримайте в таємниці — один ключ підтверджує всі ваші сертифікати",
+       phSecret:"вставте приватний ключ — тримайте в таємниці", lRemember:"Запам'ятати на пристрої", lKeys:"Згенерувати ключі",
        phDate:"дд.мм.рррр", btnChoose:"Вибрати файл", phNoFile:"Файл не вибрано", helpLink:"Довідка / Як це працює",
        lCategory:"Категорія", catPTG:"Живопис", catDRW:"Графіка та Малюнок", catMIX:"Змішана техніка та Фіджитал-арт", catPRN:"Тиражна графіка / Естамп", catSCL:"Скульптура та Об'ємні форми", catPHO:"Фотографія", catDIG:"Цифрове мистецтво", catDEC:"Предмети дизайну та Декор",
        tag:"Двосторінковий сертифікат автентичності · EN / UA / SK · PDF + QR" },
@@ -455,9 +461,9 @@ const FORM_I18N = {
        lTechnique:"Technika", lSupport:"Podklad", lSheet:"Rozmer listu", lArea:"Plocha diela",
        lInitials:"Iniciály", lArtworkNo:"Č. diela", lEditionCode:"Kód (auto)", lSizeCm:"Rozmer cm",
        lEditionSize:"Náklad edície", lCopyNo:"Č. kópie", lEditionId:"ID edície (auto)", lCertNo:"Č. certifikátu (auto)",
-       lGallery:"Galéria", lDate:"Dátum (voliteľné)", lImage:"Obraz diela", lSecret:"Váš tajný podpisový kľúč",
+       lGallery:"Galéria", lDate:"Dátum (voliteľné)", lImage:"Obraz diela", lSecret:"Súkromný podpisový kľúč (ECDSA)",
        lBaseUrl:"Základná URL overovacej stránky", btnSave:"Uložiť ako PDF", btnSend:"Odoslať PDF", btnCopy:"Kopírovať odkaz",
-       phSecret:"uchovajte v tajnosti — jeden kľúč overuje všetky vaše certifikáty",
+       phSecret:"vložte súkromný kľúč — uchovajte v tajnosti", lRemember:"Zapamätať na tomto zariadení", lKeys:"Vygenerovať kľúče",
        phDate:"dd.mm.rrrr", btnChoose:"Vybrať súbor", phNoFile:"Žiadny súbor", helpLink:"Pomoc / Ako to funguje",
        lCategory:"Kategória", catPTG:"Maľba", catDRW:"Kresba a práce na papieri", catMIX:"Zmiešané médiá a fygitálne umenie", catPRN:"Grafika a multiply", catSCL:"Sochy a 3D objekty", catPHO:"Fotografia", catDIG:"Digitálne umenie", catDEC:"Dizajn a dekoratívne umenie",
        tag:"Dvojstranový certifikát pravosti · EN / UA / SK · PDF + QR" }
@@ -611,25 +617,45 @@ function onArtist(){
 }
 function editionLabel(d){ return (d.en||'—') + (d.et ? ' / '+d.et : ''); }
 
-// Cryptographic signature: HMAC-SHA256 (WebCrypto). Without the secret key a valid
-// signature is computationally infeasible to forge (unlike the old non-crypto hash).
+// Asymmetric signature: ECDSA P-256 (WebCrypto). The gallery signs with its PRIVATE key;
+// verify.html checks with the gallery PUBLIC key — no secret needed to verify, impossible to forge.
 function bufToB64url(buf){
   const b = new Uint8Array(buf); let s='';
   for(let i=0;i<b.length;i++) s += String.fromCharCode(b[i]);
   return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 }
-async function hmacSign(message, secret){
-  const enc = new TextEncoder();
-  // empty secret → a fixed public placeholder key (cert readable but not protected)
-  const key = await crypto.subtle.importKey('raw', enc.encode(secret || 'artcoa-unsigned'),
-    {name:'HMAC', hash:'SHA-256'}, false, ['sign']);
-  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(message));
+function b64urlToStr(b64){
+  b64 = b64.replace(/-/g,'+').replace(/_/g,'/');
+  const bin = atob(b64), bytes = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+let _privCache = {b64:null, key:null};
+async function importPrivKey(b64){
+  if(!b64) return null;
+  if(_privCache.b64 === b64) return _privCache.key;
+  const jwk = JSON.parse(b64urlToStr(b64.trim()));
+  const key = await crypto.subtle.importKey('jwk', jwk, {name:'ECDSA', namedCurve:'P-256'}, false, ['sign']);
+  _privCache = {b64, key};
+  return key;
+}
+async function ecdsaSign(message, b64){
+  const key = await importPrivKey(b64);
+  if(!key) return '';
+  const sig = await crypto.subtle.sign({name:'ECDSA', hash:'SHA-256'}, key, new TextEncoder().encode(message));
   return bufToB64url(sig);
 }
+
+let sigState = 'unsigned';   // 'signed' | 'unsigned' | 'error'
 async function buildLink(d){
   const payload = {...d, sn:certId(d)};
   const msg = JSON.stringify(payload);                 // signed message = payload without sg
-  payload.sg = await hmacSign(msg, $('secret').value);
+  const pk = $('secret').value.trim();
+  if(!pk){ sigState = 'unsigned'; }
+  else {
+    try { payload.sg = await ecdsaSign(msg, pk); sigState = payload.sg ? 'signed' : 'unsigned'; }
+    catch(e){ sigState = 'error'; }                    // invalid private key → leave unsigned
+  }
   const base = $('vbase').value.trim() || 'verify.html';
   return base + '#' + encodeData(payload);
 }
@@ -645,6 +671,27 @@ async function refreshQR(){
   $('qrbox').innerHTML = '';
   qr = new QRCode($('qrbox'), {text:link, width:512, height:512,
        colorDark:'#000000', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.M});
+  const ss = $('sigstatus');
+  if(ss){
+    const map = { signed:['✓ '+T_SIG[LANG].signed,'#2f5d3a'], unsigned:['• '+T_SIG[LANG].unsigned,'#8a5a1c'], error:['⚠ '+T_SIG[LANG].error,'#7c2d2d'] };
+    const [txt,col] = map[sigState] || map.unsigned;
+    ss.textContent = txt; ss.style.color = col;
+  }
+}
+const T_SIG = {
+  en:{signed:'Signed', unsigned:'Unsigned (no key)', error:'Invalid signing key'},
+  uk:{signed:'Підписано', unsigned:'Без підпису (немає ключа)', error:'Невірний ключ підпису'},
+  sk:{signed:'Podpísané', unsigned:'Bez podpisu (žiadny kľúč)', error:'Neplatný podpisový kľúč'}
+};
+function onKeyInput(){
+  if($('remember') && $('remember').checked){ try{ localStorage.setItem('artcoa_pk', $('secret').value); }catch(e){} }
+  render();
+}
+function onRemember(){
+  try{
+    if($('remember').checked) localStorage.setItem('artcoa_pk', $('secret').value);
+    else localStorage.removeItem('artcoa_pk');
+  }catch(e){}
 }
 function scheduleQR(){ clearTimeout(qrTimer); qrTimer = setTimeout(refreshQR, 250); }
 function render(){
@@ -828,6 +875,7 @@ function todayStr(){
 
 // defaults
 $('issued').value = todayStr();
+try{ const pk=localStorage.getItem('artcoa_pk'); if(pk){ $('secret').value=pk; $('remember').checked=true; } }catch(e){}
 applyFormLang();
 render();
 refreshQR();          // draw the signed QR immediately on load

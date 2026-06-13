@@ -79,9 +79,9 @@
 <script>
 const T = {
   en:{verifying:"Verifying…",
-    valid:"Authentic — signature verified", validSub:"Signature matches the issuing artist's key.",
-    unsigned:"Certificate readable — signature not checked", unsignedSub:"Enter the artist's key below to confirm the signature.",
-    invalid:"Signature does not match", invalidSub:"This certificate may have been altered or the key is wrong.",
+    valid:"Authentic — signature verified", validSub:"Verified with Smalta Art Gallery’s public key.",
+    unsigned:"Not signed", unsignedSub:"This certificate carries no digital signature.",
+    invalid:"Signature does not match", invalidSub:"Not signed by the gallery, or the certificate was altered.",
     nodata:"No certificate data found in this link.",
     eyebrow:"Certificate of Authenticity", title:"Title of artwork", category:"Category",
     artist:"Artist",year:"Year",technique:"Technique",support:"Support",
@@ -93,9 +93,9 @@ const T = {
     disc:"This Certificate of Authenticity confirms the authorship and identification of the artwork based on information provided by the artist or authorised representative. It does not automatically transfer copyright or ownership rights unless explicitly stated in a separate agreement."
   },
   uk:{verifying:"Перевірка…",
-    valid:"Автентичний — підпис підтверджено", validSub:"Підпис відповідає ключу художника-емітента.",
-    unsigned:"Сертифікат читається — підпис не перевірено", unsignedSub:"Введіть ключ художника нижче, щоб підтвердити підпис.",
-    invalid:"Підпис не співпадає", invalidSub:"Сертифікат міг бути змінений або введено невірний ключ.",
+    valid:"Автентичний — підпис підтверджено", validSub:"Перевірено публічним ключем Smalta Art Gallery.",
+    unsigned:"Без підпису", unsignedSub:"Цей сертифікат не має цифрового підпису.",
+    invalid:"Підпис не співпадає", invalidSub:"Не підписано галереєю або сертифікат було змінено.",
     nodata:"У цьому посиланні немає даних сертифіката.",
     eyebrow:"Сертифікат автентичності", title:"Назва твору", category:"Категорія",
     artist:"Художник",year:"Рік",technique:"Техніка",support:"Основа",
@@ -107,9 +107,9 @@ const T = {
     disc:"Цей сертифікат автентичності підтверджує авторство та ідентифікацію твору на підставі інформації, наданої художником або уповноваженим представником. Сертифікат не передає автоматично авторські права або право власності, якщо це прямо не передбачено окремим договором."
   },
   sk:{verifying:"Overovanie…",
-    valid:"Pravé — podpis overený", validSub:"Podpis sa zhoduje s kľúčom vydávajúceho umelca.",
-    unsigned:"Certifikát čitateľný — podpis neoverený", unsignedSub:"Zadajte kľúč umelca nižšie na potvrdenie podpisu.",
-    invalid:"Podpis sa nezhoduje", invalidSub:"Tento certifikát mohol byť zmenený alebo je kľúč nesprávny.",
+    valid:"Pravé — podpis overený", validSub:"Overené verejným kľúčom Smalta Art Gallery.",
+    unsigned:"Bez podpisu", unsignedSub:"Tento certifikát nemá digitálny podpis.",
+    invalid:"Podpis sa nezhoduje", invalidSub:"Nepodpísané galériou alebo certifikát bol zmenený.",
     nodata:"V tomto odkaze nie sú údaje certifikátu.",
     eyebrow:"Certifikát pravosti", title:"Názov diela", category:"Kategória",
     artist:"Umelec",year:"Rok",technique:"Technika",support:"Podklad",
@@ -159,29 +159,37 @@ function decodeData(str){
   const json = new TextDecoder().decode(bytes);
   return JSON.parse(json);
 }
-// HMAC-SHA256 signature verification (must match the generator's hmacSign exactly)
-function bufToB64url(buf){
-  const b=new Uint8Array(buf); let s='';
-  for(let i=0;i<b.length;i++) s+=String.fromCharCode(b[i]);
-  return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+// ECDSA P-256 verification with the Smalta Art Gallery PUBLIC key.
+// Only the holder of the matching PRIVATE key (the gallery) can produce a valid signature;
+// the buyer verifies automatically and needs no secret.
+const GALLERY_PUBKEY = 'eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6IldHWlhZeHZMRGNWMGJxVWJJUjRKNmVMamxRc0ZSUWxkZTNaejFxVm9XUlUiLCJ5IjoibTNvb1FtMXM2c3phWHB0ZEFrYVNUYUhCaUZyQWlZbWRRZnY4NnBsY2pLayJ9';
+function b64urlToStr(b64){
+  b64=b64.replace(/-/g,'+').replace(/_/g,'/'); const bin=atob(b64);
+  const bytes=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
 }
-async function hmacSign(message, secret){
-  const enc=new TextEncoder();
-  // empty secret → same fixed public placeholder key as the generator
-  const key=await crypto.subtle.importKey('raw', enc.encode(secret || 'artcoa-unsigned'), {name:'HMAC',hash:'SHA-256'}, false, ['sign']);
-  const sig=await crypto.subtle.sign('HMAC', key, enc.encode(message));
-  return bufToB64url(sig);
+function b64urlToBuf(b64){
+  b64=b64.replace(/-/g,'+').replace(/_/g,'/'); const bin=atob(b64);
+  const bytes=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return bytes.buffer;
+}
+let _pubKey=null;
+async function getPubKey(){
+  if(_pubKey) return _pubKey;
+  const jwk=JSON.parse(b64urlToStr(GALLERY_PUBKEY));
+  _pubKey=await crypto.subtle.importKey('jwk', jwk, {name:'ECDSA',namedCurve:'P-256'}, false, ['verify']);
+  return _pubKey;
+}
+async function verifySig(d){
+  const copy={...d}; const sg=copy.sg; delete copy.sg;
+  if(!sg) return null;                  // no signature → unsigned
+  const key=await getPubKey();
+  return crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'}, key, b64urlToBuf(sg),
+    new TextEncoder().encode(JSON.stringify(copy)));
 }
 
 function rowHTML(k,v){ return v ? `<div class="row"><span class="k">${k}</span><span class="v">${esc(v)}</span></div>` : ''; }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-
-async function checkSig(d, key){
-  const copy = {...d}; const stored = copy.sg; delete copy.sg;
-  if(!stored) return false;
-  let calc; try{ calc = await hmacSign(JSON.stringify(copy), key); }catch(e){ return false; }
-  return calc === stored;
-}
 
 function render(d, lang){
   const t = T[lang] || T.en;
@@ -213,14 +221,9 @@ function render(d, lang){
       ${rowHTML(vlab('issued',lang),d.is)}
       <div class="rule"></div>
       <div class="disc">${t.disc}</div>
-    </div></div>
-    <div class="verify-key" id="keybox">
-      <label>${t.keylabel}</label>
-      <input id="keyin" placeholder="••••••" oninput="recheck()">
-      <p>${t.keyhint}</p>
-    </div>`;
+    </div></div>`;
 
-  updateStatus('');   // async signature check with the empty key first
+  updateStatus();   // automatic verification with the gallery's public key (no key entry)
 }
 
 function setBar(cls, title, sub){
@@ -229,19 +232,13 @@ function setBar(cls, title, sub){
   document.getElementById('st-title').textContent=title;
   document.getElementById('st-sub').textContent=sub;
 }
-function toggleKey(show){ const kb=document.getElementById('keybox'); if(kb) kb.style.display = show?'block':'none'; }
-
-async function updateStatus(key){
+async function updateStatus(){
   const d=window._cert, lang=window._lang, t=T[lang]||T.en;
-  if(!d || !d.sg){ setBar('unsigned', t.unsigned, t.unsignedSub); toggleKey(true); return; }
-  const ok = await checkSig(d, key);
-  let cls,title,sub;
-  if(key===''){ cls=ok?'valid':'unsigned'; title=ok?t.valid:t.unsigned; sub=ok?t.validSub:t.unsignedSub; }
-  else { cls=ok?'valid':'invalid'; title=ok?t.valid:t.invalid; sub=ok?t.validSub:t.invalidSub; }
-  setBar(cls,title,sub);
-  toggleKey(cls!=='valid');
+  let ok; try{ ok = await verifySig(d); }catch(e){ ok = false; }
+  if(ok === null){ setBar('unsigned', t.unsigned, t.unsignedSub); }
+  else if(ok){ setBar('valid', t.valid, t.validSub); }
+  else { setBar('invalid', t.invalid, t.invalidSub); }
 }
-function recheck(){ updateStatus(document.getElementById('keyin').value); }
 
 (function init(){
   const hash = location.hash.slice(1);

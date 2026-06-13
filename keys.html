@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArtCOA — Signing keys</title>
+<link rel="icon" type="image/jpeg" href="icon.jpg">
+<style>
+  :root{--ink:#1a1714;--paper:#fbfaf7;--stone:#6b645b;--line:#d8d3c9;--seal:#7c2d2d;--ok:#2f5d3a}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Georgia,'Times New Roman',serif;background:var(--paper);color:var(--ink);line-height:1.6}
+  .wrap{max-width:760px;margin:0 auto;padding:0 22px 70px}
+  header{border-bottom:1px solid var(--line);padding:24px 0;display:flex;align-items:center;gap:16px}
+  header img{height:48px;border-radius:6px}
+  header h1{font-size:21px;font-weight:400}
+  .back{font-size:13px;color:var(--seal);text-decoration:none}
+  h2{font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:var(--stone);
+     margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line);font-weight:400}
+  p{margin:10px 0;font-size:15px}
+  .btn{font-family:Georgia,serif;font-size:14px;background:var(--ink);color:#fff;border:none;
+       padding:12px 22px;cursor:pointer;letter-spacing:.05em}
+  .btn:hover{background:var(--seal)}
+  .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--ink)}
+  textarea{width:100%;font-family:'Courier New',monospace;font-size:12px;border:1px solid var(--line);
+       padding:10px 12px;background:#fff;resize:vertical}
+  .row{margin:14px 0}
+  .row label{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--stone);margin-bottom:6px}
+  .mini{font-size:13px;color:var(--stone);margin-top:6px}
+  .danger{background:#f6efe9;border-left:3px solid var(--seal);padding:12px 16px;font-size:14px;margin:10px 0}
+  .good{background:#eef3ef;border-left:3px solid var(--ok);padding:12px 16px;font-size:14px;margin:10px 0}
+  #out{display:none}
+  code{font-family:'Courier New',monospace;font-size:13px;background:#f1eee8;padding:1px 5px;border-radius:3px}
+  a{color:var(--seal)}
+</style>
+</head>
+<body>
+<header>
+  <a href="https://smalta.gallery/" target="_blank" rel="noopener"><img src="smalta-logo.jpg" alt="Smalta Art Gallery"></a>
+  <div style="flex:1">
+    <h1>ArtCOA — Signing keys</h1>
+    <a class="back" href="index.html">← Back to generator</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <p>Certificates are signed with an <b>ECDSA P-256</b> key pair. The <b>private key</b> signs (keep it secret);
+  the <b>public key</b> is what <code>verify.html</code> uses to check signatures (safe to share).</p>
+
+  <h2>1 · Generate a new key pair</h2>
+  <p>Do this once. It runs entirely in your browser — keys never leave this page.</p>
+  <button class="btn" onclick="gen()">Generate new key pair</button>
+
+  <div id="out">
+    <h2>2 · Private signing key — keep secret</h2>
+    <div class="danger"><b>Never share or commit this.</b> Paste it into the generator’s <b>“Private signing key”</b>
+      field to sign certificates. Anyone with this key can issue valid certificates.</div>
+    <div class="row">
+      <textarea id="priv" rows="3" readonly onclick="this.select()"></textarea>
+      <button class="btn ghost" onclick="copyId('priv')">Copy</button>
+      <button class="btn ghost" onclick="downloadPriv()">Download .txt</button>
+    </div>
+
+    <h2>3 · Public key — for verify.html</h2>
+    <div class="good">Safe to share. Send this to your developer to put into <code>verify.html</code>
+      (the <code>GALLERY_PUBKEY</code> constant), so scanned certificates verify automatically.</div>
+    <div class="row">
+      <textarea id="pub" rows="2" readonly onclick="this.select()"></textarea>
+      <button class="btn ghost" onclick="copyId('pub')">Copy</button>
+    </div>
+  </div>
+
+  <h2>Recover public key from a private key</h2>
+  <p>Lost your public key but still have the private one? Paste the private key to derive the public key again.</p>
+  <div class="row">
+    <textarea id="importpriv" rows="3" placeholder="paste private key…"></textarea>
+    <button class="btn ghost" onclick="fromPriv()">Derive public key</button>
+  </div>
+
+  <p class="mini">Algorithm: ECDSA P-256, SHA-256. Keys are stored as base64url-encoded JWK.</p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+function enc(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function dec(b){ b=b.replace(/-/g,'+').replace(/_/g,'/'); return JSON.parse(decodeURIComponent(escape(atob(b)))); }
+
+async function gen(){
+  if(!(crypto.subtle)){ alert('Secure context required (https or localhost).'); return; }
+  const kp = await crypto.subtle.generateKey({name:'ECDSA', namedCurve:'P-256'}, true, ['sign','verify']);
+  const pub = await crypto.subtle.exportKey('jwk', kp.publicKey);
+  const priv = await crypto.subtle.exportKey('jwk', kp.privateKey);
+  show(priv, pub);
+}
+function show(priv, pub){
+  $('priv').value = enc(priv);
+  $('pub').value  = enc({kty:pub.kty, crv:pub.crv, x:pub.x, y:pub.y});
+  $('out').style.display = 'block';
+  $('out').scrollIntoView({behavior:'smooth'});
+}
+function fromPriv(){
+  try{
+    const priv = dec($('importpriv').value.trim());
+    show(priv, {kty:priv.kty, crv:priv.crv, x:priv.x, y:priv.y});
+  }catch(e){ alert('Invalid private key.'); }
+}
+function copyId(id){
+  const el=$(id); el.select();
+  navigator.clipboard ? navigator.clipboard.writeText(el.value) : document.execCommand('copy');
+}
+function downloadPriv(){
+  const blob = new Blob(['ArtCOA — PRIVATE signing key (KEEP SECRET)\n\n'+$('priv').value+'\n'], {type:'text/plain'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'gallery-private-key.txt';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+</script>
+</body>
+</html>

@@ -75,7 +75,7 @@
       <li>The <b>Edition code</b> is set automatically from the Status (see table below).</li>
       <li>Optionally set <b>gallery</b> and <b>date</b>.</li>
       <li>On page 2, attach the <b>artwork image</b> ("Choose file").</li>
-      <li>Enter your <b>secret signature key</b> — keep it private. The same key verifies all your certificates.</li>
+      <li>Paste your <b>private signing key</b> (generate it once in <code>keys.html</code>). Keep it secret — only this key can issue valid certificates.</li>
       <li>Check the <b>live preview</b> on the right (two A4 pages).</li>
     </ol>
 
@@ -97,9 +97,9 @@
     <h2>Send &amp; share</h2>
     <p><b>Send PDF</b> shares a ready file: on phones it opens the native share sheet (email, messengers, AirDrop); on desktop it downloads the file and opens an email draft. <b>Copy verify link</b> copies the verification URL to the clipboard.</p>
 
-    <h2>QR verification &amp; the secret key</h2>
-    <p>Scanning the QR opens the verification page with the certificate data embedded in the link. To prove authenticity, the holder enters your <b>secret signature key</b>; if the signature matches, the page shows <b>“Authentic”</b>.</p>
-    <div class="note"><b>Security.</b> Certificates are signed with <b>HMAC-SHA256</b>: without the secret key a valid signature is computationally infeasible to forge, and any change to the data invalidates it (tamper-evident). <b>Limitations:</b> verification is symmetric (the holder needs the key), the data still travels inside the QR link, and there is no central registry / revocation yet — that comes with the server version.</div>
+    <h2>QR verification</h2>
+    <p>Scanning the QR opens the verification page, which checks the signature <b>automatically</b> against the gallery’s public key — the buyer needs no secret. A valid, untampered certificate shows <b>“Authentic”</b>.</p>
+    <div class="note"><b>Security.</b> Certificates are signed with an <b>ECDSA P-256</b> key pair: the gallery signs with its <b>private key</b> (kept secret); anyone verifies automatically with the <b>public key</b> built into the verify page. Forgery is computationally infeasible without the private key, and any change to the data invalidates the signature (tamper-evident). <b>Limitations:</b> the data still travels inside the QR link, and there is no central registry / revocation yet — that comes with the server version.</div>
 
     <h2>Languages</h2>
     <p>The interface and form appear in the selected language. On the certificate itself, labels are English for English, and bilingual (<i>“selected / English”</i>) for Ukrainian and Slovak.</p>
@@ -128,7 +128,7 @@
       <li><b>Код видання</b> підставляється автоматично за статусом (див. таблицю).</li>
       <li>За потреби вкажіть <b>галерею</b> та <b>дату</b>.</li>
       <li>На 2-й сторінці додайте <b>зображення твору</b> («Вибрати файл»).</li>
-      <li>Введіть <b>секретний ключ підпису</b> — тримайте в таємниці. Один ключ підтверджує всі ваші сертифікати.</li>
+      <li>Вставте <b>приватний ключ підпису</b> (згенеруйте одноразово в <code>keys.html</code>). Тримайте в таємниці — лише цей ключ може видавати дійсні сертифікати.</li>
       <li>Перевірте <b>живий перегляд</b> праворуч (дві сторінки A4).</li>
     </ol>
 
@@ -150,9 +150,9 @@
     <h2>Надсилання та поширення</h2>
     <p><b>Надіслати PDF</b> ділиться готовим файлом: на телефоні відкриває рідне меню «Поділитися» (пошта, месенджери, AirDrop); на комп'ютері завантажує файл і відкриває чернетку листа. <b>Копіювати лінк</b> копіює посилання для перевірки.</p>
 
-    <h2>Перевірка через QR і секретний ключ</h2>
-    <p>Сканування QR відкриває сторінку перевірки з даними сертифіката в посиланні. Щоб довести справжність, власник вводить ваш <b>секретний ключ підпису</b>; якщо підпис збігається — показується <b>«Автентичний»</b>.</p>
-    <div class="note"><b>Безпека.</b> Сертифікати підписуються <b>HMAC-SHA256</b>: без секретного ключа підробити дійсний підпис криптографічно неможливо, а будь-яка зміна даних робить підпис недійсним (виявлення підробки). <b>Обмеження:</b> перевірка симетрична (власнику потрібен ключ), дані досі в QR-посиланні, і поки немає центрального реєстру / відкликання — це буде в серверній версії.</div>
+    <h2>Перевірка через QR</h2>
+    <p>Сканування QR відкриває сторінку перевірки, яка <b>автоматично</b> звіряє підпис із публічним ключем галереї — покупцю не потрібен секрет. Дійсний і незмінений сертифікат показує <b>«Автентичний»</b>.</p>
+    <div class="note"><b>Безпека.</b> Сертифікати підписуються парою ключів <b>ECDSA P-256</b>: галерея підписує <b>приватним ключем</b> (тримається в таємниці); будь-хто перевіряє автоматично <b>публічним ключем</b>, вбудованим у сторінку перевірки. Без приватного ключа підробка криптографічно неможлива, а будь-яка зміна даних робить підпис недійсним (виявлення підробки). <b>Обмеження:</b> дані досі в QR-посиланні, і поки немає центрального реєстру / відкликання — це буде в серверній версії.</div>
 
     <h2>Мови</h2>
     <p>Інтерфейс і форма показуються обраною мовою. На самому сертифікаті підписи англійською — для англійської, і двомовні (<i>«обрана / English»</i>) — для української та словацької.</p>
@@ -181,7 +181,7 @@
       <li><b>Kód edície</b> sa nastaví automaticky podľa stavu (pozri tabuľku).</li>
       <li>Voliteľne zadajte <b>galériu</b> a <b>dátum</b>.</li>
       <li>Na 2. strane priložte <b>obraz diela</b> („Vybrať súbor“).</li>
-      <li>Zadajte svoj <b>tajný podpisový kľúč</b> — uchovajte ho v tajnosti. Jeden kľúč overuje všetky vaše certifikáty.</li>
+      <li>Vložte svoj <b>súkromný podpisový kľúč</b> (vygenerujte ho raz v <code>keys.html</code>). Uchovajte ho v tajnosti — iba tento kľúč môže vydávať platné certifikáty.</li>
       <li>Skontrolujte <b>živý náhľad</b> vpravo (dve strany A4).</li>
     </ol>
 
@@ -203,9 +203,9 @@
     <h2>Odoslanie a zdieľanie</h2>
     <p><b>Odoslať PDF</b> zdieľa hotový súbor: na telefóne otvorí natívne menu zdieľania (e-mail, čety, AirDrop); na počítači stiahne súbor a otvorí koncept e-mailu. <b>Kopírovať odkaz</b> skopíruje overovací odkaz.</p>
 
-    <h2>Overenie cez QR a tajný kľúč</h2>
-    <p>Naskenovanie QR otvorí overovaciu stránku s údajmi certifikátu v odkaze. Na preukázanie pravosti držiteľ zadá váš <b>tajný podpisový kľúč</b>; ak sa podpis zhoduje, zobrazí sa <b>„Pravé“</b>.</p>
-    <div class="note"><b>Bezpečnosť.</b> Certifikáty sú podpísané <b>HMAC-SHA256</b>: bez tajného kľúča je sfalšovanie platného podpisu výpočtovo neuskutočniteľné a akákoľvek zmena údajov podpis zneplatní (odhalenie manipulácie). <b>Obmedzenia:</b> overenie je symetrické (držiteľ potrebuje kľúč), údaje sú stále v QR odkaze a zatiaľ nie je centrálny register / zrušenie — to príde so serverovou verziou.</div>
+    <h2>Overenie cez QR</h2>
+    <p>Naskenovanie QR otvorí overovaciu stránku, ktorá <b>automaticky</b> overí podpis pomocou verejného kľúča galérie — kupujúci nepotrebuje žiadne tajomstvo. Platný a nezmenený certifikát zobrazí <b>„Pravé“</b>.</p>
+    <div class="note"><b>Bezpečnosť.</b> Certifikáty sú podpísané párom kľúčov <b>ECDSA P-256</b>: galéria podpisuje <b>súkromným kľúčom</b> (drží sa v tajnosti); ktokoľvek overí automaticky <b>verejným kľúčom</b> zabudovaným v overovacej stránke. Bez súkromného kľúča je falšovanie výpočtovo neuskutočniteľné a akákoľvek zmena údajov podpis zneplatní (odhalenie manipulácie). <b>Obmedzenia:</b> údaje sú stále v QR odkaze a zatiaľ nie je centrálny register / zrušenie — to príde so serverovou verziou.</div>
 
     <h2>Jazyky</h2>
     <p>Rozhranie a formulár sa zobrazujú vo zvolenom jazyku. Na samotnom certifikáte sú popisy v angličtine pre angličtinu a dvojjazyčné (<i>„zvolený / English“</i>) pre ukrajinčinu a slovenčinu.</p>

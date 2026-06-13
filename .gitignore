@@ -1,3 +1,5 @@
 .DS_Store
 # original source uploads (canonical copies committed under clean names)
 SmaltaArtGallery.JPEG
+# PRIVATE signing key — must never be committed
+gallery-private-key.txt
