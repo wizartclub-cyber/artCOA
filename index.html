@@ -75,15 +75,7 @@
   .page{position:relative;width:794px;height:1123px;background:#fff;color:#111;
         font-family:'Helvetica Neue',Arial,sans-serif;margin:0 0 22px;
         box-shadow:0 18px 50px -34px rgba(0,0,0,.5)}
-  /* crop / trim marks at the four corners */
-  .cm{position:absolute;background:#000}
-  .cm.h{height:1.2px;width:18px}
-  .cm.v{width:1.2px;height:18px}
-  .tl-h{top:30px;left:5px}    .tl-v{left:30px;top:5px}
-  .tr-h{top:30px;right:5px}   .tr-v{right:30px;top:5px}
-  .bl-h{bottom:30px;left:5px} .bl-v{left:30px;bottom:5px}
-  .br-h{bottom:30px;right:5px}.br-v{right:30px;bottom:5px}
-  /* double-line frame on the trim box */
+  /* double-line frame */
   .frame{position:absolute;inset:30px;border:1px solid #111}
   .frame2{position:absolute;inset:35px;border:1px solid #111}
   .content{position:absolute;inset:30px;padding:46px 52px;z-index:2;display:flex;flex-direction:column}
@@ -154,11 +146,12 @@
         <label>Status edition / Статус</label>
         <select id="status" onchange="render()">
           <option>Limited Edition</option>
+          <option selected>Hand-embellished Limited Edition</option>
           <option>Open Edition</option>
           <option>Original</option>
           <option>Artist Proof</option>
-          <option>Reproduction</option>
           <option>Digital</option>
+          <option>Reproduction</option>
         </select>
       </div>
     </div>
@@ -191,8 +184,8 @@
         <input id="artworkNo" oninput="render()" placeholder="001">
       </div>
       <div class="field">
-        <label>Edition code / Код</label>
-        <input id="editionCode" oninput="render()" value="EDH" placeholder="EDH">
+        <label>Edition code / Код (auto)</label>
+        <input id="editionCode" readonly placeholder="EDH">
       </div>
     </div>
     <div class="three">
@@ -263,10 +256,6 @@
 
         <!-- PAGE 1 — CERTIFICATE OF AUTHENTICITY -->
         <div class="page" id="page1">
-          <span class="cm h tl-h"></span><span class="cm v tl-v"></span>
-          <span class="cm h tr-h"></span><span class="cm v tr-v"></span>
-          <span class="cm h bl-h"></span><span class="cm v bl-v"></span>
-          <span class="cm h br-h"></span><span class="cm v br-v"></span>
           <div class="frame"></div><div class="frame2"></div>
           <div class="content">
             <div class="c-title" id="p1-title">Certificate of Authenticity</div>
@@ -297,10 +286,6 @@
 
         <!-- PAGE 2 — ARTWORK IDENTIFICATION -->
         <div class="page" id="page2">
-          <span class="cm h tl-h"></span><span class="cm v tl-v"></span>
-          <span class="cm h tr-h"></span><span class="cm v tr-v"></span>
-          <span class="cm h bl-h"></span><span class="cm v bl-v"></span>
-          <span class="cm h br-h"></span><span class="cm v br-v"></span>
           <div class="frame"></div><div class="frame2"></div>
           <div class="content">
             <div class="c-title" id="p2-title">Artwork Identification</div>
@@ -363,6 +348,17 @@ const T = {
 let LANG = 'en';
 let artworkImg = '';                 // dataURL of uploaded artwork
 const $ = id => document.getElementById(id);
+
+// Edition code is derived from the Status edition value
+const STATUS_CODE = {
+  'Limited Edition':'ED',
+  'Hand-embellished Limited Edition':'EDH',
+  'Open Edition':'OED',
+  'Original':'OR',
+  'Artist Proof':'AP',
+  'Digital':'DIG',
+  'Reproduction':'REP'
+};
 
 function setLang(l){
   LANG = l;
@@ -427,6 +423,9 @@ function buildLink(d){
 
 let qr;
 function render(){
+  // edition code follows the status (read before collect() reads it)
+  $('editionCode').value = STATUS_CODE[$('status').value] || '';
+
   const d = collect(), t = T[LANG], id = certId(d);
 
   // auto-built identifiers shown back in the form
@@ -560,10 +559,19 @@ function sendPDF(){
   });
 }
 function copyLink(){
-  navigator.clipboard.writeText(buildLink(collect())).then(()=>{
-    $('copied').textContent = '✓ Verification link copied to clipboard.';
-    setTimeout(()=>$('copied').textContent='',3000);
-  });
+  const link = buildLink(collect());
+  const ok   = ()=>{ $('copied').textContent='✓ Verification link copied to clipboard.'; setTimeout(()=>$('copied').textContent='',3000); };
+  const legacy = ()=>{
+    try{
+      const ta=document.createElement('textarea'); ta.value=link;
+      ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta);
+      ta.focus(); ta.select(); const done=document.execCommand('copy'); ta.remove();
+      done ? ok() : window.prompt('Copy this verification link:', link);
+    }catch(e){ window.prompt('Copy this verification link:', link); }
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(link).then(ok).catch(legacy);
+  } else { legacy(); }
 }
 
 // ---------- consent banner (GDPR) ----------
@@ -574,8 +582,8 @@ function consentText(){
   $('consent-decline').textContent = t.consentDecline;
   $('privacy-link').textContent    = t.privacyLink;
 }
-function showConsent(){ $('consent').style.display='block'; }
-function hideConsent(){ $('consent').style.display='none'; }
+function showConsent(){ const c=$('consent'); c.style.display='block'; document.body.style.paddingBottom=(c.offsetHeight+8)+'px'; }
+function hideConsent(){ $('consent').style.display='none'; document.body.style.paddingBottom=''; }
 function acceptConsent(){ if(window.ArtCOAAnalytics) ArtCOAAnalytics.setConsent(true);  hideConsent(); }
 function declineConsent(){ if(window.ArtCOAAnalytics) ArtCOAAnalytics.setConsent(false); hideConsent(); }
 function openPrivacy(){ consentText(); showConsent(); }
