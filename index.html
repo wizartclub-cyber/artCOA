@@ -207,14 +207,6 @@
       <label>Artwork image / Зображення твору</label>
       <input id="imgfile" type="file" accept="image/*" onchange="loadImage(event)">
     </div>
-    <div class="field">
-      <label>Quote (optional) / Цитата</label>
-      <textarea id="quote" oninput="render()" placeholder="I combattimenti difficili vengono riservati solo a chi ha un coraggio esemplare"></textarea>
-    </div>
-    <div class="field">
-      <label>Quote author / Автор цитати</label>
-      <input id="quoteAuthor" oninput="render()" placeholder="San Francesco d'Assisi">
-    </div>
 
     <h2 class="sec" style="margin-top:28px">Verification</h2>
     <div class="field">
@@ -286,8 +278,6 @@
           <div class="content">
             <div class="c-title" id="p2-title">Artwork Identification</div>
             <div class="c-id" id="p2-id">—</div>
-            <div class="quote" id="v-quote"></div>
-            <div class="quote-author" id="v-quoteAuthor"></div>
             <div class="artwork" id="artwork"><div class="ph" id="img-ph">Artwork image will appear here</div></div>
             <div class="rows">
               <div class="r"><span class="rl" id="l-title2">Title of artwork:</span><span class="rv" id="v-title2">—</span></div>
@@ -372,7 +362,7 @@ function collect(){
     te:$('technique').value.trim(), su:$('support').value.trim(), ss:$('sheet').value.trim(),
     aa:$('area').value.trim(), se:$('status').value, ei:$('editionId').value.trim(),
     en:$('editionNo').value.trim(), et:$('editionTotal').value.trim(),
-    gl:$('gallery').value.trim(), qt:$('quote').value.trim(), qa:$('quoteAuthor').value.trim(),
+    gl:$('gallery').value.trim(),
     is:$('issued').value, ln:LANG
   };
 }
@@ -419,8 +409,6 @@ function render(){
   $('v-title2').textContent = d.ti||'—';    $('v-editionId2').textContent = d.ei||'—';
   $('v-editionNo2').textContent = editionLabel(d);
   $('v-date').textContent = d.is || '';
-  $('v-quote').textContent = d.qt ? '“'+d.qt+'”' : '';
-  $('v-quoteAuthor').textContent = d.qa || '';
 
   // artwork image
   const art = $('artwork');
