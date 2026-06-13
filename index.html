@@ -13,6 +13,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://wizartclub-cyber.github.io/artCOA/icon.jpg">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
     --ink:#1a1714;        /* near-black warm */
@@ -213,10 +215,10 @@
     </div>
 
     <div class="actions">
-      <button class="btn" onclick="makePDF()">Save as PDF</button>
+      <button class="btn" id="pdfbtn" onclick="makePDF()">Save as PDF</button>
       <button class="btn ghost" onclick="copyLink()">Copy verify link</button>
     </div>
-    <p class="hint">In the print dialog choose <b>“Save as PDF”</b> as the destination. The QR code and Cyrillic text print correctly.</p>
+    <p class="hint">Downloads a clean single-page A4 PDF — no browser headers or footers. The QR code and Cyrillic text are embedded.</p>
     <p class="hint" id="copied"></p>
   </section>
 
@@ -368,10 +370,38 @@ function copyLink(){
   });
 }
 
-// Reliable, Cyrillic-safe PDF: print the certificate via the browser.
-// This prints real browser text (perfect Cyrillic), not a rasterised image.
-function makePDF(){
-  window.print();
+// Single-page PDF generated entirely in the browser via html2canvas + jsPDF.
+// No browser print dialog → no page URL / timestamp / "Page X of Y" footer.
+// The whole certificate is scaled to fit one A4 page; Cyrillic and the QR render correctly.
+let pdfBusy = false;
+async function makePDF(){
+  if(pdfBusy) return;
+  if(typeof html2canvas==='undefined' || !window.jspdf){
+    alert('PDF libraries are still loading — please try again in a moment.');
+    return;
+  }
+  pdfBusy = true;
+  const btn = $('pdfbtn'), label = btn.textContent;
+  btn.textContent = 'Generating…'; btn.disabled = true;
+  try{
+    const el = document.querySelector('.cert');
+    const canvas = await html2canvas(el, {scale:3, backgroundColor:'#ffffff', useCORS:true});
+    const {jsPDF} = window.jspdf;
+    const pdf = new jsPDF({unit:'mm', format:'a4', orientation:'portrait'});
+    const pw = pdf.internal.pageSize.getWidth();   // 210
+    const ph = pdf.internal.pageSize.getHeight();  // 297
+    const margin = 10, maxW = pw - margin*2, maxH = ph - margin*2;
+    const ratio = canvas.width / canvas.height;
+    let w = maxW, h = w / ratio;                    // fit width, then clamp to height
+    if(h > maxH){ h = maxH; w = h * ratio; }
+    const x = (pw - w)/2, y = (ph - h)/2;           // centre on the page
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, w, h);
+    pdf.save(serial(collect()) + '.pdf');
+  }catch(e){
+    alert('Could not generate PDF: ' + e.message);
+  }finally{
+    btn.textContent = label; btn.disabled = false; pdfBusy = false;
+  }
 }
 
 // defaults
