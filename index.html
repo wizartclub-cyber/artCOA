@@ -36,8 +36,14 @@
         gap:44px;padding:30px 0 90px}
   @media(max-width:980px){.grid{grid-template-columns:1fr;gap:30px}}
 
-  h2.sec{font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:var(--stone);
+  h2.sec{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--stone);
          padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:20px;font-weight:400}
+  /* custom file picker (replaces the browser-native, OS-locale-dependent control) */
+  .filebox{display:flex;align-items:center;gap:12px}
+  .filebtn{display:inline-block;background:#fff;border:1px solid var(--ink);color:var(--ink);
+     font-family:Georgia,serif;font-size:13px;padding:9px 16px;cursor:pointer;white-space:nowrap}
+  .filebtn:hover{background:var(--ink);color:var(--paper)}
+  .filename{font-size:12px;color:var(--stone);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
   label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
         color:var(--stone);margin:0 0 6px}
@@ -247,13 +253,17 @@
     </div>
     <div class="field">
       <label data-i18n="lDate">Date (optional)</label>
-      <input id="issued" type="date" oninput="render()">
+      <input id="issued" type="text" oninput="render()" data-i18n-ph="phDate" placeholder="YYYY-MM-DD">
     </div>
 
-    <h2 class="sec" style="margin-top:28px" data-i18n="secPage2">Page 2 — artwork identification</h2>
+    <h2 class="sec" style="margin-top:28px" data-i18n="secPage2">Page 2 — Artwork</h2>
     <div class="field">
       <label data-i18n="lImage">Artwork image</label>
-      <input id="imgfile" type="file" accept="image/*" onchange="loadImage(event)">
+      <div class="filebox">
+        <label class="filebtn" for="imgfile" data-i18n="btnChoose">Choose file</label>
+        <span id="filename" class="filename">No file selected</span>
+      </div>
+      <input id="imgfile" type="file" accept="image/*" onchange="loadImage(event)" hidden>
     </div>
 
     <h2 class="sec" style="margin-top:28px" data-i18n="secVerify">Verification</h2>
@@ -273,7 +283,11 @@
     </div>
     <p class="hint" id="hint-pdf"><b>Save as PDF</b> opens the print dialog → choose destination <b>“Save as PDF”</b> for crisp, selectable text (2 pages). Tip: in <i>More settings</i> set <i>Margins: None</i> and turn off <i>Headers and footers</i> (one-time). <b>Send PDF</b> shares a ready file.</p>
     <p class="hint" id="copied"></p>
-    <p class="hint"><a class="plink" id="privacy-link" onclick="openPrivacy()">Privacy &amp; data</a></p>
+    <p class="hint">
+      <a class="plink" href="help.html" target="_blank" rel="noopener" data-i18n="helpLink">Help / How it works</a>
+      &nbsp;·&nbsp;
+      <a class="plink" id="privacy-link" onclick="openPrivacy()">Privacy &amp; data</a>
+    </p>
   </section>
 
   <!-- ============ PREVIEW ============ -->
@@ -341,8 +355,8 @@
 
 </div></div>
 
-<footer class="site-foot">
-  Розроблено <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. Всі права захищено
+<footer class="site-foot" id="site-foot">
+  © 2026 <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. All rights reserved.
 </footer>
 
 <!-- consent banner -->
@@ -396,7 +410,7 @@ function gallerySignLabel(gl){
 // Form UI strings (field labels, section headers, buttons) — shown in the SELECTED language only.
 const FORM_I18N = {
   en:{ secDetails:"Certificate details", secEdition:"Edition ID (auto-built)",
-       secPage2:"Page 2 — artwork identification", secVerify:"Verification", secPreview:"Live preview · A4 ×2",
+       secPage2:"Page 2 — Artwork", secVerify:"Verification", secPreview:"Live preview · A4 ×2",
        lArtist:"Artist", lTitle:"Title of artwork", lYear:"Year", lStatus:"Status edition",
        lTechnique:"Technique", lSupport:"Support", lSheet:"Sheet size", lArea:"Artwork area",
        lInitials:"Initials", lArtworkNo:"Artwork no.", lEditionCode:"Code (auto)", lSizeCm:"Size cm",
@@ -404,9 +418,10 @@ const FORM_I18N = {
        lGallery:"Gallery", lDate:"Date (optional)", lImage:"Artwork image", lSecret:"Your secret signature key",
        lBaseUrl:"Verification page base URL", btnSave:"Save as PDF", btnSend:"Send PDF", btnCopy:"Copy verify link",
        phSecret:"keep private — same key verifies all your certificates",
+       phDate:"YYYY-MM-DD", btnChoose:"Choose file", phNoFile:"No file selected", helpLink:"Help / How it works",
        tag:"Two-page Certificate of Authenticity · EN / UA / SK · PDF + QR verification" },
   uk:{ secDetails:"Дані сертифіката", secEdition:"ID видання (авто)",
-       secPage2:"Сторінка 2 — ідентифікація твору", secVerify:"Перевірка", secPreview:"Перегляд · A4 ×2",
+       secPage2:"Сторінка 2 — Твір", secVerify:"Перевірка", secPreview:"Перегляд · A4 ×2",
        lArtist:"Художник", lTitle:"Назва твору", lYear:"Рік", lStatus:"Статус видання",
        lTechnique:"Техніка", lSupport:"Основа", lSheet:"Розмір аркуша", lArea:"Розмір зображення",
        lInitials:"Ініціали", lArtworkNo:"№ твору", lEditionCode:"Код (авто)", lSizeCm:"Розмір, см",
@@ -414,9 +429,10 @@ const FORM_I18N = {
        lGallery:"Галерея", lDate:"Дата (необов'язково)", lImage:"Зображення твору", lSecret:"Секретний ключ підпису",
        lBaseUrl:"Базова URL сторінки перевірки", btnSave:"Зберегти як PDF", btnSend:"Надіслати PDF", btnCopy:"Копіювати лінк",
        phSecret:"тримайте в таємниці — один ключ підтверджує всі ваші сертифікати",
+       phDate:"РРРР-ММ-ДД", btnChoose:"Вибрати файл", phNoFile:"Файл не вибрано", helpLink:"Довідка / Як це працює",
        tag:"Двосторінковий сертифікат автентичності · EN / UA / SK · PDF + QR" },
   sk:{ secDetails:"Údaje certifikátu", secEdition:"ID edície (auto)",
-       secPage2:"Strana 2 — identifikácia diela", secVerify:"Overenie", secPreview:"Náhľad · A4 ×2",
+       secPage2:"Strana 2 — Dielo", secVerify:"Overenie", secPreview:"Náhľad · A4 ×2",
        lArtist:"Umelec", lTitle:"Názov diela", lYear:"Rok", lStatus:"Stav edície",
        lTechnique:"Technika", lSupport:"Podklad", lSheet:"Rozmer listu", lArea:"Plocha diela",
        lInitials:"Iniciály", lArtworkNo:"Č. diela", lEditionCode:"Kód (auto)", lSizeCm:"Rozmer cm",
@@ -424,7 +440,14 @@ const FORM_I18N = {
        lGallery:"Galéria", lDate:"Dátum (voliteľné)", lImage:"Obraz diela", lSecret:"Váš tajný podpisový kľúč",
        lBaseUrl:"Základná URL overovacej stránky", btnSave:"Uložiť ako PDF", btnSend:"Odoslať PDF", btnCopy:"Kopírovať odkaz",
        phSecret:"uchovajte v tajnosti — jeden kľúč overuje všetky vaše certifikáty",
+       phDate:"RRRR-MM-DD", btnChoose:"Vybrať súbor", phNoFile:"Žiadny súbor", helpLink:"Pomoc / Ako to funguje",
        tag:"Dvojstranový certifikát pravosti · EN / UA / SK · PDF + QR" }
+};
+// Legally-correct copyright footer (localized). Gallery name links to the site.
+const FOOTER = {
+  en:'© 2026 <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. All rights reserved.',
+  uk:'© 2026 <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. Усі права захищені.',
+  sk:'© 2026 <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. Všetky práva vyhradené.'
 };
 const FORM_HINT = {
   en:'<b>Save as PDF</b> opens the print dialog → choose destination <b>“Save as PDF”</b> for crisp, selectable text (2 pages). Tip: in <i>More settings</i> set <i>Margins: None</i> and turn off <i>Headers and footers</i> (one-time). <b>Send PDF</b> shares a ready file.',
@@ -443,6 +466,10 @@ function applyFormLang(){
   });
   const hint = document.getElementById('hint-pdf');
   if(hint) hint.innerHTML = FORM_HINT[LANG] || FORM_HINT.en;
+  const fn = document.getElementById('filename');
+  if(fn && !artworkImg) fn.textContent = dict.phNoFile || FORM_I18N.en.phNoFile;
+  const foot = document.getElementById('site-foot');
+  if(foot) foot.innerHTML = FOOTER[LANG] || FOOTER.en;
 }
 
 let LANG = 'en';
@@ -575,6 +602,7 @@ function render(){
 function loadImage(ev){
   const f = ev.target.files && ev.target.files[0];
   if(!f) return;
+  $('filename').textContent = f.name;
   const r = new FileReader();
   r.onload = e => { artworkImg = e.target.result; render(); };
   r.readAsDataURL(f);

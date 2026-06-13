@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArtCOA — Help / Довідка / Pomoc</title>
+<link rel="icon" type="image/jpeg" href="icon.jpg">
+<style>
+  :root{--ink:#1a1714;--paper:#fbfaf7;--stone:#6b645b;--line:#d8d3c9;--seal:#7c2d2d}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Georgia,'Times New Roman',serif;background:var(--paper);color:var(--ink);line-height:1.6}
+  .wrap{max-width:820px;margin:0 auto;padding:0 24px}
+  header{border-bottom:1px solid var(--line);padding:24px 0}
+  .headrow{display:flex;align-items:center;gap:16px}
+  .headrow img{height:50px;border-radius:6px}
+  .headrow h1{font-size:22px;font-weight:400;letter-spacing:.02em}
+  .back{font-size:13px;color:var(--seal);text-decoration:none}
+  .back:hover{text-decoration:underline}
+  .langtabs{display:flex;margin:22px 0;border:1px solid var(--line);width:fit-content}
+  .langtabs button{font-family:Georgia,serif;font-size:13px;letter-spacing:.06em;
+      padding:9px 20px;background:#fff;border:none;cursor:pointer;color:var(--stone)}
+  .langtabs button.on{background:var(--ink);color:var(--paper)}
+  .block{display:none;padding-bottom:60px}
+  .block.on{display:block}
+  h2{font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:var(--stone);
+     margin:30px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line);font-weight:400}
+  h2:first-of-type{margin-top:14px}
+  p{margin:10px 0}
+  ol,ul{margin:10px 0 10px 22px}
+  li{margin:6px 0}
+  .lead{font-size:17px}
+  code{font-family:'Courier New',monospace;font-size:13px;background:#f1eee8;padding:1px 5px;border-radius:3px}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+  th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line)}
+  th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--stone);font-weight:400}
+  .note{background:#f3f1ec;border-left:3px solid var(--seal);padding:12px 16px;margin:14px 0;font-size:14px}
+  a{color:var(--seal)}
+  footer{border-top:1px solid var(--line);padding:22px;text-align:center;font-size:13px;color:var(--stone)}
+  footer a{color:var(--seal);text-decoration:none}
+</style>
+</head>
+<body>
+<header><div class="wrap headrow">
+  <a href="https://smalta.gallery/" target="_blank" rel="noopener"><img src="smalta-logo.jpg" alt="Smalta Art Gallery"></a>
+  <div style="flex:1">
+    <h1>ArtCOA — Help</h1>
+    <a class="back" href="index.html">← Back to generator / До генератора / Späť na generátor</a>
+  </div>
+</div></header>
+
+<div class="wrap">
+  <div class="langtabs">
+    <button id="t-en" class="on" onclick="show('en')">English</button>
+    <button id="t-uk" onclick="show('uk')">Українська</button>
+    <button id="t-sk" onclick="show('sk')">Slovenčina</button>
+  </div>
+
+  <!-- ===================== ENGLISH ===================== -->
+  <div class="block on" id="b-en">
+    <p class="lead">ArtCOA is a free tool by Smalta Art Gallery that issues a two-page <b>Certificate of Authenticity</b> for an artwork or a limited-edition print, with a <b>QR code</b> for online verification. It runs entirely in your browser — no account needed.</p>
+
+    <h2>What the program does</h2>
+    <ul>
+      <li><b>Page 1 — Certificate of Authenticity:</b> all artwork data, identifiers, QR code and signature lines.</li>
+      <li><b>Page 2 — Artwork identification:</b> the artwork image plus key identifiers and signature lines.</li>
+      <li>A <b>QR code</b> on page 1 links to a verification page that carries the certificate data inside the link.</li>
+    </ul>
+
+    <h2>How to create a certificate</h2>
+    <ol>
+      <li>Pick the language (English / Українська / Slovenčina) at the top left.</li>
+      <li>Fill in <b>artist, title, year, status, technique, support, sheet size, artwork area</b>.</li>
+      <li>The <b>Edition ID</b> builds automatically: <code>initials-year-artworkNo-code-sizeCm-editionSize</code> (e.g. <code>sd-2026-001-EDH-50x70-15</code>). Initials are suggested from the artist's name and can be edited.</li>
+      <li>The <b>Certificate no.</b> = Edition ID + copy number (e.g. <code>…-15-1</code>). Both are filled in automatically.</li>
+      <li>The <b>Edition code</b> is set automatically from the Status (see table below).</li>
+      <li>Optionally set <b>gallery</b> and <b>date</b>.</li>
+      <li>On page 2, attach the <b>artwork image</b> ("Choose file").</li>
+      <li>Enter your <b>secret signature key</b> — keep it private. The same key verifies all your certificates.</li>
+      <li>Check the <b>live preview</b> on the right (two A4 pages).</li>
+    </ol>
+
+    <h2>Status → Edition code</h2>
+    <table>
+      <tr><th>Status edition</th><th>Code</th></tr>
+      <tr><td>Limited Edition</td><td>ED</td></tr>
+      <tr><td>Hand-embellished Limited Edition</td><td>EDH</td></tr>
+      <tr><td>Open Edition</td><td>OED</td></tr>
+      <tr><td>Original</td><td>OR</td></tr>
+      <tr><td>Artist Proof</td><td>AP</td></tr>
+      <tr><td>Digital</td><td>DIG</td></tr>
+      <tr><td>Reproduction</td><td>REP</td></tr>
+    </table>
+
+    <h2>Save as PDF</h2>
+    <p>Click <b>Save as PDF</b> → the print dialog opens → choose destination <b>“Save as PDF”</b>. The text is crisp and selectable (vector). For a clean result, in <i>More settings</i> set <i>Margins: None</i> and turn off <i>Headers and footers</i> (one-time). The file is named after the certificate number.</p>
+
+    <h2>Send &amp; share</h2>
+    <p><b>Send PDF</b> shares a ready file: on phones it opens the native share sheet (email, messengers, AirDrop); on desktop it downloads the file and opens an email draft. <b>Copy verify link</b> copies the verification URL to the clipboard.</p>
+
+    <h2>QR verification &amp; the secret key</h2>
+    <p>Scanning the QR opens the verification page with the certificate data embedded in the link. To prove authenticity, the holder enters your <b>secret signature key</b>; if the signature matches, the page shows <b>“Authentic”</b>.</p>
+    <div class="note"><b>Honest limitation.</b> This is demand validation, not cryptographic protection: the data lives inside the QR link, and the secret key only deters casual tampering. A future server version will add a central registry and revocation.</div>
+
+    <h2>Languages</h2>
+    <p>The interface and form appear in the selected language. On the certificate itself, labels are English for English, and bilingual (<i>“selected / English”</i>) for Ukrainian and Slovak.</p>
+
+    <h2>Privacy &amp; data</h2>
+    <p>With your consent we record each generated certificate (its details, device info and approximate location/IP) to improve the service. You can <b>decline</b> and still use everything; change your choice anytime via the <b>“Privacy &amp; data”</b> link in the generator. We don’t sell this data.</p>
+  </div>
+
+  <!-- ===================== УКРАЇНСЬКА ===================== -->
+  <div class="block" id="b-uk">
+    <p class="lead">ArtCOA — безкоштовний інструмент від Smalta Art Gallery, що створює двосторінковий <b>сертифікат автентичності</b> для твору мистецтва чи тиражного відбитка з <b>QR-кодом</b> для онлайн-перевірки. Працює повністю у браузері — без реєстрації.</p>
+
+    <h2>Що робить програма</h2>
+    <ul>
+      <li><b>Сторінка 1 — сертифікат автентичності:</b> усі дані твору, ідентифікатори, QR-код і лінії для підписів.</li>
+      <li><b>Сторінка 2 — ідентифікація твору:</b> зображення твору, ключові ідентифікатори та підписи.</li>
+      <li><b>QR-код</b> на 1-й сторінці веде на сторінку перевірки; дані сертифіката «зашиті» в посилання.</li>
+    </ul>
+
+    <h2>Як створити сертифікат</h2>
+    <ol>
+      <li>Оберіть мову (English / Українська / Slovenčina) вгорі зліва.</li>
+      <li>Заповніть <b>художника, назву, рік, статус, техніку, основу, розмір аркуша, розмір зображення</b>.</li>
+      <li><b>Edition ID</b> формується автоматично: <code>ініціали-рік-№твору-код-розмірСм-тираж</code> (напр. <code>sd-2026-001-EDH-50x70-15</code>). Ініціали підставляються з імені художника й редагуються.</li>
+      <li><b>№ сертифіката</b> = Edition ID + номер копії (напр. <code>…-15-1</code>). Обидва заповнюються автоматично.</li>
+      <li><b>Код видання</b> підставляється автоматично за статусом (див. таблицю).</li>
+      <li>За потреби вкажіть <b>галерею</b> та <b>дату</b>.</li>
+      <li>На 2-й сторінці додайте <b>зображення твору</b> («Вибрати файл»).</li>
+      <li>Введіть <b>секретний ключ підпису</b> — тримайте в таємниці. Один ключ підтверджує всі ваші сертифікати.</li>
+      <li>Перевірте <b>живий перегляд</b> праворуч (дві сторінки A4).</li>
+    </ol>
+
+    <h2>Статус → Код видання</h2>
+    <table>
+      <tr><th>Статус видання</th><th>Код</th></tr>
+      <tr><td>Limited Edition</td><td>ED</td></tr>
+      <tr><td>Hand-embellished Limited Edition</td><td>EDH</td></tr>
+      <tr><td>Open Edition</td><td>OED</td></tr>
+      <tr><td>Original</td><td>OR</td></tr>
+      <tr><td>Artist Proof</td><td>AP</td></tr>
+      <tr><td>Digital</td><td>DIG</td></tr>
+      <tr><td>Reproduction</td><td>REP</td></tr>
+    </table>
+
+    <h2>Збереження у PDF</h2>
+    <p>Натисніть <b>Зберегти як PDF</b> → відкриється діалог друку → оберіть призначення <b>«Зберегти як PDF»</b>. Текст чіткий і виділяється (вектор). Для чистого результату у <i>Додаткових налаштуваннях</i> поставте <i>Поля: Немає</i> і вимкніть <i>Колонтитули</i> (одноразово). Файл називається за номером сертифіката.</p>
+
+    <h2>Надсилання та поширення</h2>
+    <p><b>Надіслати PDF</b> ділиться готовим файлом: на телефоні відкриває рідне меню «Поділитися» (пошта, месенджери, AirDrop); на комп'ютері завантажує файл і відкриває чернетку листа. <b>Копіювати лінк</b> копіює посилання для перевірки.</p>
+
+    <h2>Перевірка через QR і секретний ключ</h2>
+    <p>Сканування QR відкриває сторінку перевірки з даними сертифіката в посиланні. Щоб довести справжність, власник вводить ваш <b>секретний ключ підпису</b>; якщо підпис збігається — показується <b>«Автентичний»</b>.</p>
+    <div class="note"><b>Чесне обмеження.</b> Це валідація попиту, а не криптографічний захист: дані містяться в QR-посиланні, а секретний ключ лише ускладнює підробку. Майбутня серверна версія додасть центральний реєстр і відкликання.</div>
+
+    <h2>Мови</h2>
+    <p>Інтерфейс і форма показуються обраною мовою. На самому сертифікаті підписи англійською — для англійської, і двомовні (<i>«обрана / English»</i>) — для української та словацької.</p>
+
+    <h2>Приватність і дані</h2>
+    <p>За вашою згодою ми фіксуємо кожен створений сертифікат (його дані, інформацію про пристрій та приблизне місцезнаходження/IP) для покращення сервісу. Можна <b>відхилити</b> й користуватися далі; змінити рішення — посиланням <b>«Приватність і дані»</b> в генераторі. Ми не продаємо ці дані.</p>
+  </div>
+
+  <!-- ===================== SLOVENČINA ===================== -->
+  <div class="block" id="b-sk">
+    <p class="lead">ArtCOA je bezplatný nástroj od Smalta Art Gallery, ktorý vytvára dvojstranový <b>certifikát pravosti</b> pre umelecké dielo alebo limitovanú tlač s <b>QR kódom</b> na online overenie. Beží úplne vo vašom prehliadači — bez registrácie.</p>
+
+    <h2>Čo program robí</h2>
+    <ul>
+      <li><b>Strana 1 — certifikát pravosti:</b> všetky údaje diela, identifikátory, QR kód a riadky na podpis.</li>
+      <li><b>Strana 2 — identifikácia diela:</b> obraz diela, kľúčové identifikátory a podpisy.</li>
+      <li><b>QR kód</b> na 1. strane vedie na overovaciu stránku; údaje certifikátu sú vložené v odkaze.</li>
+    </ul>
+
+    <h2>Ako vytvoriť certifikát</h2>
+    <ol>
+      <li>Vyberte jazyk (English / Українська / Slovenčina) vľavo hore.</li>
+      <li>Vyplňte <b>umelca, názov, rok, stav, techniku, podklad, rozmer listu, plochu diela</b>.</li>
+      <li><b>Edition ID</b> sa zostaví automaticky: <code>iniciály-rok-čDiela-kód-rozmerCm-náklad</code> (napr. <code>sd-2026-001-EDH-50x70-15</code>). Iniciály sa navrhnú z mena umelca a dajú sa upraviť.</li>
+      <li><b>Č. certifikátu</b> = Edition ID + číslo kópie (napr. <code>…-15-1</code>). Obe sa vyplnia automaticky.</li>
+      <li><b>Kód edície</b> sa nastaví automaticky podľa stavu (pozri tabuľku).</li>
+      <li>Voliteľne zadajte <b>galériu</b> a <b>dátum</b>.</li>
+      <li>Na 2. strane priložte <b>obraz diela</b> („Vybrať súbor“).</li>
+      <li>Zadajte svoj <b>tajný podpisový kľúč</b> — uchovajte ho v tajnosti. Jeden kľúč overuje všetky vaše certifikáty.</li>
+      <li>Skontrolujte <b>živý náhľad</b> vpravo (dve strany A4).</li>
+    </ol>
+
+    <h2>Stav → Kód edície</h2>
+    <table>
+      <tr><th>Stav edície</th><th>Kód</th></tr>
+      <tr><td>Limited Edition</td><td>ED</td></tr>
+      <tr><td>Hand-embellished Limited Edition</td><td>EDH</td></tr>
+      <tr><td>Open Edition</td><td>OED</td></tr>
+      <tr><td>Original</td><td>OR</td></tr>
+      <tr><td>Artist Proof</td><td>AP</td></tr>
+      <tr><td>Digital</td><td>DIG</td></tr>
+      <tr><td>Reproduction</td><td>REP</td></tr>
+    </table>
+
+    <h2>Uloženie do PDF</h2>
+    <p>Kliknite na <b>Uložiť ako PDF</b> → otvorí sa dialóg tlače → vyberte cieľ <b>„Uložiť ako PDF“</b>. Text je ostrý a označiteľný (vektor). Pre čistý výsledok v <i>Ďalších nastaveniach</i> nastavte <i>Okraje: Žiadne</i> a vypnite <i>Hlavičky a päty</i> (jednorazovo). Súbor sa pomenuje podľa čísla certifikátu.</p>
+
+    <h2>Odoslanie a zdieľanie</h2>
+    <p><b>Odoslať PDF</b> zdieľa hotový súbor: na telefóne otvorí natívne menu zdieľania (e-mail, čety, AirDrop); na počítači stiahne súbor a otvorí koncept e-mailu. <b>Kopírovať odkaz</b> skopíruje overovací odkaz.</p>
+
+    <h2>Overenie cez QR a tajný kľúč</h2>
+    <p>Naskenovanie QR otvorí overovaciu stránku s údajmi certifikátu v odkaze. Na preukázanie pravosti držiteľ zadá váš <b>tajný podpisový kľúč</b>; ak sa podpis zhoduje, zobrazí sa <b>„Pravé“</b>.</p>
+    <div class="note"><b>Čestné obmedzenie.</b> Ide o overenie dopytu, nie kryptografickú ochranu: údaje sú v QR odkaze a tajný kľúč len sťažuje falšovanie. Budúca serverová verzia pridá centrálny register a zrušenie.</div>
+
+    <h2>Jazyky</h2>
+    <p>Rozhranie a formulár sa zobrazujú vo zvolenom jazyku. Na samotnom certifikáte sú popisy v angličtine pre angličtinu a dvojjazyčné (<i>„zvolený / English“</i>) pre ukrajinčinu a slovenčinu.</p>
+
+    <h2>Súkromie a údaje</h2>
+    <p>S vaším súhlasom zaznamenávame každý vytvorený certifikát (jeho údaje, informácie o zariadení a približnú polohu/IP) na zlepšenie služby. Môžete <b>odmietnuť</b> a naďalej všetko používať; voľbu zmeníte odkazom <b>„Súkromie a údaje“</b> v generátore. Tieto údaje nepredávame.</p>
+  </div>
+</div>
+
+<footer>
+  © 2026 <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. All rights reserved.
+</footer>
+
+<script>
+function show(l){
+  ['en','uk','sk'].forEach(x=>{
+    document.getElementById('b-'+x).classList.toggle('on', x===l);
+    document.getElementById('t-'+x).classList.toggle('on', x===l);
+  });
+  document.documentElement.lang = l;
+}
+</script>
+</body>
+</html>
