@@ -24,8 +24,9 @@
   // Public IP + geo lookup (no API key, CORS-enabled). Swap if you prefer.
   var IP_LOOKUP_URL = 'https://ipwho.is/';
 
-  var LS_EVENTS = 'artcoa_events';   // local event log
-  var LS_VID    = 'artcoa_vid';      // anonymous visitor id
+  var LS_EVENTS  = 'artcoa_events';   // local event log
+  var LS_VID     = 'artcoa_vid';      // anonymous visitor id
+  var LS_CONSENT = 'artcoa_consent';  // 'granted' | 'denied' | '' (undecided)
 
   // ── helpers ───────────────────────────────────────────────────────────────
   function uuid() {
@@ -46,6 +47,11 @@
     if (!id) { id = uuid(); lsSet(LS_VID, id); }
     return id;
   }
+
+  // ── consent (GDPR) ──────────────────────────────────────────────────────────
+  // Nothing is collected, stored or sent until the user explicitly accepts.
+  function consent() { return lsGet(LS_CONSENT, ''); }
+  function setConsent(granted) { lsSet(LS_CONSENT, granted ? 'granted' : 'denied'); }
 
   function deviceInfo() {
     var n = navigator, s = screen || {};
@@ -104,6 +110,7 @@
   // cert: the object from collect() (keys ar,ti,yr,ty,me,di,ed,ow,ln) + sn (serial)
   // action: 'save' | 'send' | 'visit' | custom
   function track(cert, action) {
+    if (consent() !== 'granted') return Promise.resolve(false); // no consent → collect nothing
     cert = cert || {};
     var base = {
       ts:         new Date().toISOString(),
@@ -131,6 +138,9 @@
 
   global.ArtCOAAnalytics = {
     track: track,
+    consent: consent,                                  // '' | 'granted' | 'denied'
+    setConsent: setConsent,                            // setConsent(true|false)
+    hasConsent: function () { return consent() === 'granted'; },
     all:   function () { try { return JSON.parse(lsGet(LS_EVENTS, '[]')); } catch (e) { return []; } },
     count: function () { return this.all().length; },
     clear: function () { lsSet(LS_EVENTS, '[]'); },

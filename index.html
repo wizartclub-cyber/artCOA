@@ -115,6 +115,22 @@
       padding:12px 14px;background:#f3f1ec;border-left:2px solid var(--seal)}
   code{font-family:'Courier New',monospace;font-size:11px;word-break:break-all}
 
+  /* ---- consent banner ---- */
+  .consent{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--ink);
+      color:#f3f1ec;padding:16px 20px;display:none;
+      box-shadow:0 -10px 34px -22px rgba(0,0,0,.7)}
+  .consent.show{display:block}
+  .consent .inner{max-width:1180px;margin:0 auto;display:flex;gap:20px;
+      align-items:center;flex-wrap:wrap}
+  .consent p{font-size:13px;line-height:1.55;flex:1;min-width:260px;color:#e8e4dc}
+  .consent .c-btns{display:flex;gap:10px;flex-shrink:0}
+  .consent button{font-family:Georgia,serif;font-size:13px;letter-spacing:.04em;
+      padding:9px 20px;cursor:pointer;border:1px solid #6b645b;background:transparent;color:#f3f1ec}
+  .consent button.primary{background:#f3f1ec;color:var(--ink);border-color:#f3f1ec}
+  .consent button:hover{border-color:#f3f1ec}
+  @media print{.consent{display:none!important}}
+  a.plink{color:var(--stone);text-decoration:underline;cursor:pointer}
+
   /* ---- print: only the certificate, centred on A4 ---- */
   @media print{
     @page{size:A4;margin:0}
@@ -222,6 +238,7 @@
     </div>
     <p class="hint">Downloads a clean single-page A4 PDF — no browser headers or footers. The QR code and Cyrillic text are embedded.</p>
     <p class="hint" id="copied"></p>
+    <p class="hint"><a class="plink" id="privacy-link" onclick="openPrivacy()">Privacy &amp; data</a></p>
   </section>
 
   <!-- PREVIEW -->
@@ -262,6 +279,15 @@
 
 </div></div>
 
+<!-- consent banner -->
+<div class="consent" id="consent"><div class="inner">
+  <p id="consent-text"></p>
+  <div class="c-btns">
+    <button id="consent-decline" onclick="declineConsent()">Decline</button>
+    <button class="primary" id="consent-accept" onclick="acceptConsent()">Accept</button>
+  </div>
+</div></div>
+
 <script>
 const T = {
   en:{
@@ -269,14 +295,22 @@ const T = {
     artist:"Artist", year:"Year", type:"Type", medium:"Medium",
     dims:"Dimensions", edition:"Edition", owner:"Owner", sign:"Artist signature",
     statement:"This certifies that the artwork described above is an authentic original work created by the named artist. The information herein is provided by the artist or authorised representative.",
-    disc:"This Certificate of Authenticity confirms the authorship and identification of the artwork based on information provided by the artist or authorised representative. It does not automatically transfer copyright or ownership rights unless explicitly stated in a separate agreement."
+    disc:"This Certificate of Authenticity confirms the authorship and identification of the artwork based on information provided by the artist or authorised representative. It does not automatically transfer copyright or ownership rights unless explicitly stated in a separate agreement.",
+    consentText:"To improve this service we log each certificate you generate — its details, your device info and IP / approximate location. We don’t sell this data. You can decline and still use everything.",
+    consentAccept:"Accept",
+    consentDecline:"Decline",
+    privacyLink:"Privacy & data"
   },
   uk:{
     eyebrow:"Сертифікат автентичності", issuer:"Видано художником",
     artist:"Художник", year:"Рік", type:"Тип", medium:"Техніка",
     dims:"Розміри", edition:"Тираж", owner:"Власник", sign:"Підпис художника",
     statement:"Цим засвідчується, що описаний вище твір є автентичним оригінальним твором, створеним зазначеним художником. Наведена інформація надана художником або уповноваженим представником.",
-    disc:"Цей сертифікат автентичності підтверджує авторство та ідентифікацію твору на підставі інформації, наданої художником або уповноваженим представником. Сертифікат не передає автоматично авторські права або право власності, якщо це прямо не передбачено окремим договором."
+    disc:"Цей сертифікат автентичності підтверджує авторство та ідентифікацію твору на підставі інформації, наданої художником або уповноваженим представником. Сертифікат не передає автоматично авторські права або право власності, якщо це прямо не передбачено окремим договором.",
+    consentText:"Щоб покращувати сервіс, ми фіксуємо кожен створений сертифікат — його дані, інформацію про ваш пристрій та IP / приблизне місцезнаходження. Ми не продаємо ці дані. Можна відхилити й користуватися далі.",
+    consentAccept:"Прийняти",
+    consentDecline:"Відхилити",
+    privacyLink:"Приватність і дані"
   }
 };
 let LANG = 'en';
@@ -286,8 +320,23 @@ function setLang(l){
   LANG = l;
   $('tab-en').classList.toggle('on', l==='en');
   $('tab-uk').classList.toggle('on', l==='uk');
+  consentText();
   render();
 }
+
+// ---- consent banner (GDPR) ----
+function consentText(){
+  const t = T[LANG];
+  $('consent-text').textContent    = t.consentText;
+  $('consent-accept').textContent  = t.consentAccept;
+  $('consent-decline').textContent = t.consentDecline;
+  $('privacy-link').textContent    = t.privacyLink;
+}
+function showConsent(){ $('consent').classList.add('show'); }
+function hideConsent(){ $('consent').classList.remove('show'); }
+function acceptConsent(){ if(window.ArtCOAAnalytics) ArtCOAAnalytics.setConsent(true);  hideConsent(); }
+function declineConsent(){ if(window.ArtCOAAnalytics) ArtCOAAnalytics.setConsent(false); hideConsent(); }
+function openPrivacy(){ consentText(); showConsent(); }   // re-open to change the choice
 
 // URL-safe Base64 for UTF-8 (handles Cyrillic)
 function encodeData(obj){
@@ -468,6 +517,10 @@ function sendPDF(){
 // defaults
 $('issued').valueAsDate = new Date();
 render();
+
+// show the consent banner on first visit (until the user accepts or declines)
+consentText();
+if(!window.ArtCOAAnalytics || !ArtCOAAnalytics.consent()) showConsent();
 </script>
 </body>
 </html>
