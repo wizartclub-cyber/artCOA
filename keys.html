@@ -14,6 +14,9 @@
   header img{height:48px;border-radius:6px}
   header h1{font-size:21px;font-weight:400}
   .back{font-size:13px;color:var(--seal);text-decoration:none}
+  .langtabs{display:flex;margin:22px 0 6px;border:1px solid var(--line);width:fit-content}
+  .langtabs button{font-family:Georgia,serif;font-size:13px;letter-spacing:.06em;padding:9px 20px;background:#fff;border:none;cursor:pointer;color:var(--stone)}
+  .langtabs button.on{background:var(--ink);color:var(--paper)}
   h2{font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:var(--stone);
      margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line);font-weight:400}
   p{margin:10px 0;font-size:15px}
@@ -24,74 +27,145 @@
   textarea{width:100%;font-family:'Courier New',monospace;font-size:12px;border:1px solid var(--line);
        padding:10px 12px;background:#fff;resize:vertical}
   .row{margin:14px 0}
-  .row label{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--stone);margin-bottom:6px}
   .mini{font-size:13px;color:var(--stone);margin-top:6px}
   .danger{background:#f6efe9;border-left:3px solid var(--seal);padding:12px 16px;font-size:14px;margin:10px 0}
   .good{background:#eef3ef;border-left:3px solid var(--ok);padding:12px 16px;font-size:14px;margin:10px 0}
   #out{display:none}
   code{font-family:'Courier New',monospace;font-size:13px;background:#f1eee8;padding:1px 5px;border-radius:3px}
   a{color:var(--seal)}
+  footer{border-top:1px solid var(--line);padding:22px;text-align:center;font-size:13px;color:var(--stone)}
+  footer a{color:var(--seal);text-decoration:none}
 </style>
 </head>
 <body>
 <header>
   <a href="https://smalta.gallery/" target="_blank" rel="noopener"><img src="smalta-logo.jpg" alt="Smalta Art Gallery"></a>
   <div style="flex:1">
-    <h1>ArtCOA — Signing keys</h1>
-    <a class="back" href="index.html">← Back to generator</a>
+    <h1 data-i18n="title">ArtCOA — Signing keys</h1>
+    <a class="back" href="index.html" data-i18n="back">← Back to generator</a>
   </div>
 </header>
 
 <div class="wrap">
-  <p>Certificates are signed with an <b>ECDSA P-256</b> key pair. The <b>private key</b> signs (keep it secret);
-  the <b>public key</b> is what <code>verify.html</code> uses to check signatures (safe to share).</p>
+  <div class="langtabs">
+    <button id="t-en" class="on" onclick="setLang('en')">English</button>
+    <button id="t-uk" onclick="setLang('uk')">Українська</button>
+    <button id="t-sk" onclick="setLang('sk')">Slovenčina</button>
+  </div>
 
-  <h2>1 · Generate a new key pair</h2>
-  <p>Do this once. It runs entirely in your browser — keys never leave this page.</p>
-  <button class="btn" onclick="gen()">Generate new key pair</button>
+  <p data-i18n-html="intro"></p>
+
+  <h2 data-i18n="h1">1 · Generate a new key pair</h2>
+  <p data-i18n="genp"></p>
+  <button class="btn" onclick="gen()" data-i18n="btnGen">Generate new key pair</button>
 
   <div id="out">
-    <h2>2 · Private signing key — keep secret</h2>
-    <div class="danger"><b>Never share or commit this.</b> Paste it into the generator’s <b>“Private signing key”</b>
-      field to sign certificates. Anyone with this key can issue valid certificates.</div>
+    <h2 data-i18n="h2">2 · Private signing key — keep secret</h2>
+    <div class="danger" data-i18n-html="danger"></div>
     <div class="row">
       <textarea id="priv" rows="3" readonly onclick="this.select()"></textarea>
-      <button class="btn ghost" onclick="copyId('priv')">Copy</button>
-      <button class="btn ghost" onclick="downloadPriv()">Download .txt</button>
+      <button class="btn ghost" onclick="copyId('priv')" data-i18n="copy">Copy</button>
+      <button class="btn ghost" onclick="downloadPriv()" data-i18n="download">Download .txt</button>
     </div>
 
-    <h2>3 · Public key — for verify.html</h2>
-    <div class="good">Safe to share. Send this to your developer to put into <code>verify.html</code>
-      (the <code>GALLERY_PUBKEY</code> constant), so scanned certificates verify automatically.</div>
+    <h2 data-i18n="h3">3 · Public key — for verify.html</h2>
+    <div class="good" data-i18n-html="good"></div>
     <div class="row">
       <textarea id="pub" rows="2" readonly onclick="this.select()"></textarea>
-      <button class="btn ghost" onclick="copyId('pub')">Copy</button>
+      <button class="btn ghost" onclick="copyId('pub')" data-i18n="copy">Copy</button>
     </div>
   </div>
 
-  <h2>Recover public key from a private key</h2>
-  <p>Lost your public key but still have the private one? Paste the private key to derive the public key again.</p>
+  <h2 data-i18n="h4">Recover public key from a private key</h2>
+  <p data-i18n="recp"></p>
   <div class="row">
-    <textarea id="importpriv" rows="3" placeholder="paste private key…"></textarea>
-    <button class="btn ghost" onclick="fromPriv()">Derive public key</button>
+    <textarea id="importpriv" rows="3" data-i18n-ph="phImport" placeholder="paste private key…"></textarea>
+    <button class="btn ghost" onclick="fromPriv()" data-i18n="btnDerive">Derive public key</button>
   </div>
 
-  <p class="mini">Algorithm: ECDSA P-256, SHA-256. Keys are stored as base64url-encoded JWK.</p>
+  <p class="mini" data-i18n="mini">Algorithm: ECDSA P-256, SHA-256. Keys are stored as base64url-encoded JWK.</p>
 </div>
+
+<footer id="foot"></footer>
 
 <script>
 const $ = id => document.getElementById(id);
+const I = {
+  en:{
+    title:"ArtCOA — Signing keys", back:"← Back to generator",
+    intro:'Certificates are signed with an <b>ECDSA P-256</b> key pair. The <b>private key</b> signs (keep it secret); the <b>public key</b> is what <code>verify.html</code> uses to check signatures (safe to share).',
+    h1:"1 · Generate a new key pair",
+    genp:"Do this once. It runs entirely in your browser — keys never leave this page.",
+    btnGen:"Generate new key pair",
+    h2:"2 · Private signing key — keep secret",
+    danger:'<b>Never share or commit this.</b> Paste it into the generator’s <b>“Private signing key”</b> field to sign certificates. Anyone with this key can issue valid certificates.',
+    copy:"Copy", download:"Download .txt",
+    h3:"3 · Public key — for verify.html",
+    good:'Safe to share. Send this to your developer to put into <code>verify.html</code> (the <code>GALLERY_PUBKEY</code> constant), so scanned certificates verify automatically.',
+    h4:"Recover public key from a private key",
+    recp:"Lost your public key but still have the private one? Paste the private key to derive the public key again.",
+    phImport:"paste private key…",
+    btnDerive:"Derive public key",
+    mini:"Algorithm: ECDSA P-256, SHA-256. Keys are stored as base64url-encoded JWK.",
+    foot:'© 2026 <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. All rights reserved.'
+  },
+  uk:{
+    title:"ArtCOA — Ключі підпису", back:"← До генератора",
+    intro:'Сертифікати підписуються парою ключів <b>ECDSA P-256</b>. <b>Приватний ключ</b> підписує (тримайте в таємниці); <b>публічний ключ</b> використовує <code>verify.html</code> для перевірки підписів (можна ділитися).',
+    h1:"1 · Згенерувати нову пару ключів",
+    genp:"Зробіть це один раз. Усе виконується у вашому браузері — ключі не залишають цю сторінку.",
+    btnGen:"Згенерувати пару ключів",
+    h2:"2 · Приватний ключ підпису — тримайте в таємниці",
+    danger:'<b>Ніколи не діліться й не комітьте це.</b> Вставте у поле <b>«Private signing key»</b> генератора, щоб підписувати сертифікати. Будь-хто з цим ключем може видавати дійсні сертифікати.',
+    copy:"Копіювати", download:"Завантажити .txt",
+    h3:"3 · Публічний ключ — для verify.html",
+    good:'Можна ділитися. Передайте розробнику, щоб вставити у <code>verify.html</code> (константа <code>GALLERY_PUBKEY</code>), і скановані сертифікати перевірятимуться автоматично.',
+    h4:"Відновити публічний ключ із приватного",
+    recp:"Втратили публічний ключ, але маєте приватний? Вставте приватний ключ, щоб знову отримати публічний.",
+    phImport:"вставте приватний ключ…",
+    btnDerive:"Отримати публічний ключ",
+    mini:"Алгоритм: ECDSA P-256, SHA-256. Ключі зберігаються як JWK у форматі base64url.",
+    foot:'© 2026 <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. Усі права захищені.'
+  },
+  sk:{
+    title:"ArtCOA — Podpisové kľúče", back:"← Späť na generátor",
+    intro:'Certifikáty sú podpísané párom kľúčov <b>ECDSA P-256</b>. <b>Súkromný kľúč</b> podpisuje (uchovajte v tajnosti); <b>verejný kľúč</b> používa <code>verify.html</code> na overenie podpisov (možno zdieľať).',
+    h1:"1 · Vygenerovať nový pár kľúčov",
+    genp:"Urobte to raz. Všetko beží vo vašom prehliadači — kľúče neopustia túto stránku.",
+    btnGen:"Vygenerovať pár kľúčov",
+    h2:"2 · Súkromný podpisový kľúč — uchovajte v tajnosti",
+    danger:'<b>Nikdy ho nezdieľajte ani necommitujte.</b> Vložte ho do poľa <b>„Private signing key“</b> v generátore na podpisovanie certifikátov. Ktokoľvek s týmto kľúčom môže vydávať platné certifikáty.',
+    copy:"Kopírovať", download:"Stiahnuť .txt",
+    h3:"3 · Verejný kľúč — pre verify.html",
+    good:'Možno zdieľať. Pošlite ho vývojárovi, aby ho vložil do <code>verify.html</code> (konštanta <code>GALLERY_PUBKEY</code>), aby sa naskenované certifikáty overovali automaticky.',
+    h4:"Obnoviť verejný kľúč zo súkromného",
+    recp:"Stratili ste verejný kľúč, ale máte súkromný? Vložte súkromný kľúč na odvodenie verejného.",
+    phImport:"vložte súkromný kľúč…",
+    btnDerive:"Odvodiť verejný kľúč",
+    mini:"Algoritmus: ECDSA P-256, SHA-256. Kľúče sú uložené ako JWK vo formáte base64url.",
+    foot:'© 2026 <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. Všetky práva vyhradené.'
+  }
+};
+function setLang(l){
+  ['en','uk','sk'].forEach(x=>$('t-'+x).classList.toggle('on', x===l));
+  document.documentElement.lang = l;
+  const d = I[l] || I.en;
+  document.querySelectorAll('[data-i18n]').forEach(e=>{ const k=e.getAttribute('data-i18n'); if(d[k]!=null) e.textContent=d[k]; });
+  document.querySelectorAll('[data-i18n-html]').forEach(e=>{ const k=e.getAttribute('data-i18n-html'); if(d[k]!=null) e.innerHTML=d[k]; });
+  document.querySelectorAll('[data-i18n-ph]').forEach(e=>{ const k=e.getAttribute('data-i18n-ph'); if(d[k]!=null) e.placeholder=d[k]; });
+  $('foot').innerHTML = d.foot;
+}
+
 function enc(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function dec(b){ b=b.replace(/-/g,'+').replace(/_/g,'/'); return JSON.parse(decodeURIComponent(escape(atob(b)))); }
-
 async function gen(){
   if(!(crypto.subtle)){ alert('Secure context required (https or localhost).'); return; }
   const kp = await crypto.subtle.generateKey({name:'ECDSA', namedCurve:'P-256'}, true, ['sign','verify']);
   const pub = await crypto.subtle.exportKey('jwk', kp.publicKey);
   const priv = await crypto.subtle.exportKey('jwk', kp.privateKey);
-  show(priv, pub);
+  showKeys(priv, pub);
 }
-function show(priv, pub){
+function showKeys(priv, pub){
   $('priv').value = enc(priv);
   $('pub').value  = enc({kty:pub.kty, crv:pub.crv, x:pub.x, y:pub.y});
   $('out').style.display = 'block';
@@ -100,7 +174,7 @@ function show(priv, pub){
 function fromPriv(){
   try{
     const priv = dec($('importpriv').value.trim());
-    show(priv, {kty:priv.kty, crv:priv.crv, x:priv.x, y:priv.y});
+    showKeys(priv, {kty:priv.kty, crv:priv.crv, x:priv.x, y:priv.y});
   }catch(e){ alert('Invalid private key.'); }
 }
 function copyId(id){
@@ -112,6 +186,7 @@ function downloadPriv(){
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'gallery-private-key.txt';
   document.body.appendChild(a); a.click(); a.remove();
 }
+setLang('en');
 </script>
 </body>
 </html>

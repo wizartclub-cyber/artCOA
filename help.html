@@ -69,12 +69,12 @@
     <h2>How to create a certificate</h2>
     <ol>
       <li>Pick the language (English / Українська / Slovenčina) at the top left.</li>
-      <li>Fill in <b>artist, title, year, status, technique, support, sheet size, artwork area</b>.</li>
+      <li>Fill in <b>artist, title, year, status, category, technique, support, sheet size, artwork area</b>. The <b>category</b> (PTG, DRW, MIX, PRN, SCL, PHO, DIG, DEC) is printed on the certificate and sets an example hint in the Medium field.</li>
       <li>The <b>Edition ID</b> builds automatically: <code>initials-year-artworkNo-code-sizeCm-editionSize</code> (e.g. <code>sd-2026-001-EDH-50x70-15</code>). Initials are suggested from the artist's name and can be edited.</li>
       <li>The <b>Certificate no.</b> = Edition ID + copy number (e.g. <code>…-15-1</code>). Both are filled in automatically.</li>
       <li>The <b>Edition code</b> is set automatically from the Status (see table below).</li>
       <li>Optionally set <b>gallery</b> and <b>date</b>.</li>
-      <li>On page 2, attach the <b>artwork image</b> ("Choose file").</li>
+      <li>On page 2, attach the <b>artwork image</b> ("Choose file"). It is automatically resized for print and (if image hosting is configured) uploaded so the verification page can show the photo.</li>
       <li>Paste your <b>private signing key</b> (generate it once in <code>keys.html</code>). Keep it secret — only this key can issue valid certificates.</li>
       <li>Check the <b>live preview</b> on the right (two A4 pages).</li>
     </ol>
@@ -98,14 +98,14 @@
     <p><b>Send PDF</b> shares a ready file: on phones it opens the native share sheet (email, messengers, AirDrop); on desktop it downloads the file and opens an email draft. <b>Copy verify link</b> copies the verification URL to the clipboard.</p>
 
     <h2>QR verification</h2>
-    <p>Scanning the QR opens the verification page, which checks the signature <b>automatically</b> against the gallery’s public key — the buyer needs no secret. A valid, untampered certificate shows <b>“Authentic”</b>.</p>
+    <p>Scanning the QR opens the verification page, which checks the signature <b>automatically</b> against the gallery’s public key — the buyer needs no secret. A valid, untampered certificate shows <b>“Authentic”</b>, and the <b>artwork photo</b> too (if it was attached). The page also shows an explicit edition-status line (<i>Unique piece (1/1)</i> or <i>Limited Edition — copy X of Y</i>).</p>
     <div class="note"><b>Security.</b> Certificates are signed with an <b>ECDSA P-256</b> key pair: the gallery signs with its <b>private key</b> (kept secret); anyone verifies automatically with the <b>public key</b> built into the verify page. Forgery is computationally infeasible without the private key, and any change to the data invalidates the signature (tamper-evident). <b>Limitations:</b> the data still travels inside the QR link, and there is no central registry / revocation yet — that comes with the server version.</div>
 
     <h2>Languages</h2>
     <p>The interface and form appear in the selected language. On the certificate itself, labels are English for English, and bilingual (<i>“selected / English”</i>) for Ukrainian and Slovak.</p>
 
     <h2>Privacy &amp; data</h2>
-    <p>With your consent we record each generated certificate (its details, device info and approximate location/IP) to improve the service. You can <b>decline</b> and still use everything; change your choice anytime via the <b>“Privacy &amp; data”</b> link in the generator. We don’t sell this data.</p>
+    <p>With your consent we record an <b>anonymous</b> event per certificate (art category, edition status, language, device) to improve the service — <b>no names and no IP</b> by default. You can <b>decline</b> and still use everything; change your choice anytime via the <b>“Privacy &amp; data”</b> link. We don’t sell this data. See the full <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p>
   </div>
 
   <!-- ===================== УКРАЇНСЬКА ===================== -->
@@ -122,12 +122,12 @@
     <h2>Як створити сертифікат</h2>
     <ol>
       <li>Оберіть мову (English / Українська / Slovenčina) вгорі зліва.</li>
-      <li>Заповніть <b>художника, назву, рік, статус, техніку, основу, розмір аркуша, розмір зображення</b>.</li>
+      <li>Заповніть <b>художника, назву, рік, статус, категорію, техніку, основу, розмір аркуша, розмір зображення</b>. <b>Категорія</b> (PTG, DRW, MIX, PRN, SCL, PHO, DIG, DEC) друкується на сертифікаті й задає приклад-підказку в полі «Техніка».</li>
       <li><b>Edition ID</b> формується автоматично: <code>ініціали-рік-№твору-код-розмірСм-тираж</code> (напр. <code>sd-2026-001-EDH-50x70-15</code>). Ініціали підставляються з імені художника й редагуються.</li>
       <li><b>№ сертифіката</b> = Edition ID + номер копії (напр. <code>…-15-1</code>). Обидва заповнюються автоматично.</li>
       <li><b>Код видання</b> підставляється автоматично за статусом (див. таблицю).</li>
       <li>За потреби вкажіть <b>галерею</b> та <b>дату</b>.</li>
-      <li>На 2-й сторінці додайте <b>зображення твору</b> («Вибрати файл»).</li>
+      <li>На 2-й сторінці додайте <b>зображення твору</b> («Вибрати файл»). Воно автоматично зменшується для друку і (якщо налаштовано хостинг) завантажується, щоб сторінка перевірки могла показати фото.</li>
       <li>Вставте <b>приватний ключ підпису</b> (згенеруйте одноразово в <code>keys.html</code>). Тримайте в таємниці — лише цей ключ може видавати дійсні сертифікати.</li>
       <li>Перевірте <b>живий перегляд</b> праворуч (дві сторінки A4).</li>
     </ol>
@@ -151,14 +151,14 @@
     <p><b>Надіслати PDF</b> ділиться готовим файлом: на телефоні відкриває рідне меню «Поділитися» (пошта, месенджери, AirDrop); на комп'ютері завантажує файл і відкриває чернетку листа. <b>Копіювати лінк</b> копіює посилання для перевірки.</p>
 
     <h2>Перевірка через QR</h2>
-    <p>Сканування QR відкриває сторінку перевірки, яка <b>автоматично</b> звіряє підпис із публічним ключем галереї — покупцю не потрібен секрет. Дійсний і незмінений сертифікат показує <b>«Автентичний»</b>.</p>
+    <p>Сканування QR відкриває сторінку перевірки, яка <b>автоматично</b> звіряє підпис із публічним ключем галереї — покупцю не потрібен секрет. Дійсний і незмінений сертифікат показує <b>«Автентичний»</b> і <b>фото твору</b> (якщо було додано). Також показується явний рядок статусу (<i>Унікальний твір (1/1)</i> або <i>Обмежений тираж — примірник X із Y</i>).</p>
     <div class="note"><b>Безпека.</b> Сертифікати підписуються парою ключів <b>ECDSA P-256</b>: галерея підписує <b>приватним ключем</b> (тримається в таємниці); будь-хто перевіряє автоматично <b>публічним ключем</b>, вбудованим у сторінку перевірки. Без приватного ключа підробка криптографічно неможлива, а будь-яка зміна даних робить підпис недійсним (виявлення підробки). <b>Обмеження:</b> дані досі в QR-посиланні, і поки немає центрального реєстру / відкликання — це буде в серверній версії.</div>
 
     <h2>Мови</h2>
     <p>Інтерфейс і форма показуються обраною мовою. На самому сертифікаті підписи англійською — для англійської, і двомовні (<i>«обрана / English»</i>) — для української та словацької.</p>
 
     <h2>Приватність і дані</h2>
-    <p>За вашою згодою ми фіксуємо кожен створений сертифікат (його дані, інформацію про пристрій та приблизне місцезнаходження/IP) для покращення сервісу. Можна <b>відхилити</b> й користуватися далі; змінити рішення — посиланням <b>«Приватність і дані»</b> в генераторі. Ми не продаємо ці дані.</p>
+    <p>За вашою згодою ми фіксуємо <b>знеособлену</b> подію на сертифікат (категорія, статус, мова, девайс) для покращення сервісу — <b>без імен та без IP</b> за замовчуванням. Можна <b>відхилити</b> й користуватися далі; змінити рішення — посиланням <b>«Приватність і дані»</b>. Ми не продаємо ці дані. Повна <a href="privacy.html" target="_blank" rel="noopener">Політика приватності</a>.</p>
   </div>
 
   <!-- ===================== SLOVENČINA ===================== -->
@@ -175,12 +175,12 @@
     <h2>Ako vytvoriť certifikát</h2>
     <ol>
       <li>Vyberte jazyk (English / Українська / Slovenčina) vľavo hore.</li>
-      <li>Vyplňte <b>umelca, názov, rok, stav, techniku, podklad, rozmer listu, plochu diela</b>.</li>
+      <li>Vyplňte <b>umelca, názov, rok, stav, kategóriu, techniku, podklad, rozmer listu, plochu diela</b>. <b>Kategória</b> (PTG, DRW, MIX, PRN, SCL, PHO, DIG, DEC) sa vytlačí na certifikáte a nastaví príkladovú nápovedu v poli „Technika“.</li>
       <li><b>Edition ID</b> sa zostaví automaticky: <code>iniciály-rok-čDiela-kód-rozmerCm-náklad</code> (napr. <code>sd-2026-001-EDH-50x70-15</code>). Iniciály sa navrhnú z mena umelca a dajú sa upraviť.</li>
       <li><b>Č. certifikátu</b> = Edition ID + číslo kópie (napr. <code>…-15-1</code>). Obe sa vyplnia automaticky.</li>
       <li><b>Kód edície</b> sa nastaví automaticky podľa stavu (pozri tabuľku).</li>
       <li>Voliteľne zadajte <b>galériu</b> a <b>dátum</b>.</li>
-      <li>Na 2. strane priložte <b>obraz diela</b> („Vybrať súbor“).</li>
+      <li>Na 2. strane priložte <b>obraz diela</b> („Vybrať súbor“). Automaticky sa zmenší pre tlač a (ak je nastavený hosting) nahrá, aby overovacia stránka mohla zobraziť fotografiu.</li>
       <li>Vložte svoj <b>súkromný podpisový kľúč</b> (vygenerujte ho raz v <code>keys.html</code>). Uchovajte ho v tajnosti — iba tento kľúč môže vydávať platné certifikáty.</li>
       <li>Skontrolujte <b>živý náhľad</b> vpravo (dve strany A4).</li>
     </ol>
@@ -204,14 +204,14 @@
     <p><b>Odoslať PDF</b> zdieľa hotový súbor: na telefóne otvorí natívne menu zdieľania (e-mail, čety, AirDrop); na počítači stiahne súbor a otvorí koncept e-mailu. <b>Kopírovať odkaz</b> skopíruje overovací odkaz.</p>
 
     <h2>Overenie cez QR</h2>
-    <p>Naskenovanie QR otvorí overovaciu stránku, ktorá <b>automaticky</b> overí podpis pomocou verejného kľúča galérie — kupujúci nepotrebuje žiadne tajomstvo. Platný a nezmenený certifikát zobrazí <b>„Pravé“</b>.</p>
+    <p>Naskenovanie QR otvorí overovaciu stránku, ktorá <b>automaticky</b> overí podpis pomocou verejného kľúča galérie — kupujúci nepotrebuje žiadne tajomstvo. Platný a nezmenený certifikát zobrazí <b>„Pravé“</b> aj <b>fotografiu diela</b> (ak bola priložená). Zobrazí sa aj výslovný riadok stavu (<i>Unikátne dielo (1/1)</i> alebo <i>Obmedzená edícia — kópia X z Y</i>).</p>
     <div class="note"><b>Bezpečnosť.</b> Certifikáty sú podpísané párom kľúčov <b>ECDSA P-256</b>: galéria podpisuje <b>súkromným kľúčom</b> (drží sa v tajnosti); ktokoľvek overí automaticky <b>verejným kľúčom</b> zabudovaným v overovacej stránke. Bez súkromného kľúča je falšovanie výpočtovo neuskutočniteľné a akákoľvek zmena údajov podpis zneplatní (odhalenie manipulácie). <b>Obmedzenia:</b> údaje sú stále v QR odkaze a zatiaľ nie je centrálny register / zrušenie — to príde so serverovou verziou.</div>
 
     <h2>Jazyky</h2>
     <p>Rozhranie a formulár sa zobrazujú vo zvolenom jazyku. Na samotnom certifikáte sú popisy v angličtine pre angličtinu a dvojjazyčné (<i>„zvolený / English“</i>) pre ukrajinčinu a slovenčinu.</p>
 
     <h2>Súkromie a údaje</h2>
-    <p>S vaším súhlasom zaznamenávame každý vytvorený certifikát (jeho údaje, informácie o zariadení a približnú polohu/IP) na zlepšenie služby. Môžete <b>odmietnuť</b> a naďalej všetko používať; voľbu zmeníte odkazom <b>„Súkromie a údaje“</b> v generátore. Tieto údaje nepredávame.</p>
+    <p>S vaším súhlasom zaznamenávame <b>anonymnú</b> udalosť na certifikát (kategória, stav, jazyk, zariadenie) na zlepšenie služby — <b>bez mien a bez IP</b> štandardne. Môžete <b>odmietnuť</b> a naďalej všetko používať; voľbu zmeníte odkazom <b>„Súkromie a údaje“</b>. Tieto údaje nepredávame. Úplné <a href="privacy.html" target="_blank" rel="noopener">Zásady ochrany súkromia</a>.</p>
   </div>
 </div>
 
