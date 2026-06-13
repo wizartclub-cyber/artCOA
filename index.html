@@ -508,8 +508,8 @@ let imgUploadPromise = null;         // in-flight upload (awaited before Save/Se
 const $ = id => document.getElementById(id);
 
 // ── Cloudinary (unsigned upload) — fill these after creating a free account + upload preset ──
-const CLOUDINARY_CLOUD  = 'dtp5p8lex';  // Smalta Art Gallery cloud
-const CLOUDINARY_PRESET = '';           // TODO: paste the UNSIGNED upload preset name
+const CLOUDINARY_CLOUD  = 'dtp5p8lex';        // Smalta Art Gallery cloud
+const CLOUDINARY_PRESET = 'artcoa_unsigned';  // unsigned upload preset
 const IMG_MAX = 1800;                // longest side in px — print-quality for A4, keeps files small
 
 // Downscale a chosen photo to print size (≤IMG_MAX px) → JPEG dataURL
