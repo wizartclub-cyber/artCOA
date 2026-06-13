@@ -278,6 +278,7 @@
         <span id="filename" class="filename">No file selected</span>
       </div>
       <input id="imgfile" type="file" accept="image/*" onchange="loadImage(event)" hidden>
+      <p class="hint" id="imgstatus" style="margin-top:6px"></p>
     </div>
 
     <h2 class="sec" style="margin-top:28px" data-i18n="secVerify">Verification</h2>
@@ -384,7 +385,10 @@
 <!-- consent banner -->
 <div class="consent" id="consent" style="position:fixed;left:0;right:0;bottom:0;z-index:60;background:#1a1714;color:#f3f1ec;padding:16px 20px;display:none;box-shadow:0 -10px 34px -22px rgba(0,0,0,.7)">
   <div style="max-width:1180px;margin:0 auto;display:flex;gap:20px;align-items:center;flex-wrap:wrap">
-    <p id="consent-text" style="font-size:13px;line-height:1.55;flex:1;min-width:260px;color:#e8e4dc;font-family:Georgia,serif"></p>
+    <div style="flex:1;min-width:260px">
+      <p id="consent-text" style="font-size:13px;line-height:1.55;color:#e8e4dc;font-family:Georgia,serif"></p>
+      <a id="consent-policy" href="privacy.html" target="_blank" rel="noopener" style="font-size:12px;color:#e8cfcf;text-decoration:underline"></a>
+    </div>
     <div style="display:flex;gap:10px;flex-shrink:0">
       <button id="consent-decline" onclick="declineConsent()" style="font-family:Georgia,serif;font-size:13px;padding:9px 20px;cursor:pointer;border:1px solid #6b645b;background:transparent;color:#f3f1ec">Decline</button>
       <button id="consent-accept" onclick="acceptConsent()" style="font-family:Georgia,serif;font-size:13px;padding:9px 20px;cursor:pointer;border:1px solid #f3f1ec;background:#f3f1ec;color:#1a1714">Accept</button>
@@ -396,11 +400,11 @@
 // UI strings (banner / links) per interface language
 const T = {
   en:{ consentText:"To improve this service we log each certificate you generate — its details, your device info and IP / approximate location. We don’t sell this data. You can decline and still use everything.",
-       consentAccept:"Accept", consentDecline:"Decline", privacyLink:"Privacy & data" },
+       consentAccept:"Accept", consentDecline:"Decline", privacyLink:"Privacy & data", privacyPolicy:"Read our Privacy Policy" },
   uk:{ consentText:"Щоб покращувати сервіс, ми фіксуємо кожен створений сертифікат — його дані, інформацію про ваш пристрій та IP / приблизне місцезнаходження. Ми не продаємо ці дані. Можна відхилити й користуватися далі.",
-       consentAccept:"Прийняти", consentDecline:"Відхилити", privacyLink:"Приватність і дані" },
+       consentAccept:"Прийняти", consentDecline:"Відхилити", privacyLink:"Приватність і дані", privacyPolicy:"Політика приватності" },
   sk:{ consentText:"Na zlepšenie služby zaznamenávame každý vygenerovaný certifikát — jeho údaje, informácie o vašom zariadení a IP / približnú polohu. Tieto údaje nepredávame. Môžete odmietnuť a naďalej používať všetko.",
-       consentAccept:"Prijať", consentDecline:"Odmietnuť", privacyLink:"Súkromie a údaje" }
+       consentAccept:"Prijať", consentDecline:"Odmietnuť", privacyLink:"Súkromie a údaje", privacyPolicy:"Zásady ochrany súkromia" }
 };
 
 // Certificate labels (no colon). EN is the base; UK/SK are shown as "<selected> / English".
@@ -470,9 +474,9 @@ const FORM_I18N = {
 };
 // Legally-correct copyright footer (localized). Gallery name links to the site.
 const FOOTER = {
-  en:'© 2026 <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. All rights reserved.',
-  uk:'© 2026 <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. Усі права захищені.',
-  sk:'© 2026 <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. Všetky práva vyhradené.'
+  en:'© 2026 <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. All rights reserved. · <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>',
+  uk:'© 2026 <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. Усі права захищені. · <a href="privacy.html" target="_blank" rel="noopener">Політика приватності</a>',
+  sk:'© 2026 <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. Všetky práva vyhradené. · <a href="privacy.html" target="_blank" rel="noopener">Zásady ochrany súkromia</a>'
 };
 const FORM_HINT = {
   en:'<b>Save as PDF</b> opens the print dialog → choose destination <b>“Save as PDF”</b> for crisp, selectable text (2 pages). Tip: in <i>More settings</i> set <i>Margins: None</i> and turn off <i>Headers and footers</i> (one-time). <b>Send PDF</b> shares a ready file.',
@@ -498,8 +502,55 @@ function applyFormLang(){
 }
 
 let LANG = 'en';
-let artworkImg = '';                 // dataURL of uploaded artwork
+let artworkImg = '';                 // resized dataURL of uploaded artwork (preview + PDF)
+let imgUrl = '';                     // Cloudinary URL embedded in the signed cert (for verify)
+let imgUploadPromise = null;         // in-flight upload (awaited before Save/Send)
 const $ = id => document.getElementById(id);
+
+// ── Cloudinary (unsigned upload) — fill these after creating a free account + upload preset ──
+const CLOUDINARY_CLOUD  = '';        // e.g. 'smalta-art'
+const CLOUDINARY_PRESET = '';        // e.g. 'artcoa_unsigned'
+const IMG_MAX = 1800;                // longest side in px — print-quality for A4, keeps files small
+
+// Downscale a chosen photo to print size (≤IMG_MAX px) → JPEG dataURL
+function resizeImage(file, maxSide, quality){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      let w = img.naturalWidth, h = img.naturalHeight;
+      const s = Math.min(1, maxSide / Math.max(w, h));
+      w = Math.max(1, Math.round(w*s)); h = Math.max(1, Math.round(h*s));
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(img.src);
+      resolve(c.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+// Upload the resized image to Cloudinary (returns secure URL, or '' if not configured / failed)
+async function uploadToCloudinary(dataUrl){
+  if(!CLOUDINARY_CLOUD || !CLOUDINARY_PRESET) return '';
+  const fd = new FormData();
+  fd.append('file', dataUrl);
+  fd.append('upload_preset', CLOUDINARY_PRESET);
+  const r = await fetch('https://api.cloudinary.com/v1_1/'+CLOUDINARY_CLOUD+'/image/upload', {method:'POST', body:fd});
+  const j = await r.json();
+  return j.secure_url || '';
+}
+function setImgStatus(state){
+  const el = $('imgstatus'); if(!el) return;
+  const t = (T_IMG[LANG] || T_IMG.en)[state] || '';
+  const col = {resized:'#6b645b', uploading:'#8a5a1c', uploaded:'#2f5d3a', local:'#8a5a1c', error:'#7c2d2d'}[state] || '#6b645b';
+  el.textContent = t; el.style.color = col;
+}
+const T_IMG = {
+  en:{resized:'Resized for print', uploading:'Uploading…', uploaded:'✓ Uploaded', local:'Saved in PDF only (no cloud)', error:'⚠ Upload failed'},
+  uk:{resized:'Зменшено для друку', uploading:'Завантаження…', uploaded:'✓ Завантажено', local:'Лише в PDF (без хмари)', error:'⚠ Помилка завантаження'},
+  sk:{resized:'Zmenšené pre tlač', uploading:'Nahrávanie…', uploaded:'✓ Nahraté', local:'Len v PDF (bez cloudu)', error:'⚠ Nahrávanie zlyhalo'}
+};
 
 // Edition code is derived from the Status edition value
 const STATUS_CODE = {
@@ -590,7 +641,7 @@ function collect(){
     ini:$('initials').value.trim(), no:$('artworkNo').value.trim(),
     code:$('editionCode').value.trim(), cm:$('sizeCm').value.trim(),
     et:$('editionTotal').value.trim(), en:$('editionNo').value.trim(),
-    gl:$('gallery').value.trim(), is:$('issued').value, ln:LANG
+    gl:$('gallery').value.trim(), is:$('issued').value, ln:LANG, im:imgUrl
   };
   d.ei = buildEditionId(d);   // initials-year-no-code-sizecm-editionsize
   return d;
@@ -748,13 +799,26 @@ function render(){
   fitPreview();
 }
 
-function loadImage(ev){
+async function loadImage(ev){
   const f = ev.target.files && ev.target.files[0];
   if(!f) return;
   $('filename').textContent = f.name;
-  const r = new FileReader();
-  r.onload = e => { artworkImg = e.target.result; render(); };
-  r.readAsDataURL(f);
+  imgUrl = '';
+  try { artworkImg = await resizeImage(f, IMG_MAX, 0.85); }
+  catch(e){ setImgStatus('error'); return; }
+  setImgStatus('resized');
+  render();                                   // show the resized image immediately
+  // upload to Cloudinary so the verify page can show it
+  imgUploadPromise = (async()=>{
+    setImgStatus('uploading');
+    try {
+      const url = await uploadToCloudinary(artworkImg);
+      imgUrl = url;
+      setImgStatus(url ? 'uploaded' : 'local');
+    } catch(e){ setImgStatus('error'); }
+    render();                                  // rebuild the signed QR with the image URL
+  })();
+  await imgUploadPromise; imgUploadPromise = null;
 }
 
 // scale the two A4 pages down to fit the preview column
@@ -812,12 +876,14 @@ function trackUse(action){
 }
 // Save → browser print (real vector text = crisp & selectable). Choose "Save as PDF".
 async function makePDF(){
-  await refreshQR();              // ensure the printed QR carries a fresh HMAC signature
+  if(imgUploadPromise) await imgUploadPromise;   // wait for the image URL before signing
+  await refreshQR();              // ensure the printed QR carries a fresh signature
   trackUse('save');
   window.print();
 }
 function sendPDF(){
   return withPdfBtn('sendbtn', async()=>{
+    if(imgUploadPromise) await imgUploadPromise;
     await refreshQR();            // ensure the embedded QR is freshly signed
     const {blob, filename} = await generatePdfFile();
     const file = new File([blob], filename, {type:'application/pdf'});
@@ -860,6 +926,7 @@ function consentText(){
   $('consent-accept').textContent  = t.consentAccept;
   $('consent-decline').textContent = t.consentDecline;
   $('privacy-link').textContent    = t.privacyLink;
+  $('consent-policy').textContent  = t.privacyPolicy;
 }
 function showConsent(){ const c=$('consent'); c.style.display='block'; document.body.style.paddingBottom=(c.offsetHeight+8)+'px'; }
 function hideConsent(){ $('consent').style.display='none'; document.body.style.paddingBottom=''; }
