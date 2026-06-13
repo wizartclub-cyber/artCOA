@@ -99,8 +99,28 @@ const T = {
     keylabel:"Ключ підпису художника",
     keyhint:"Цей ключ знає лише художник-емітент. Введіть його, щоб підтвердити справжність сертифіката.",
     disc:"Цей сертифікат автентичності підтверджує авторство та ідентифікацію твору на підставі інформації, наданої художником або уповноваженим представником. Сертифікат не передає автоматично авторські права або право власності, якщо це прямо не передбачено окремим договором."
+  },
+  sk:{verifying:"Overovanie…",
+    valid:"Pravé — podpis overený", validSub:"Podpis sa zhoduje s kľúčom vydávajúceho umelca.",
+    unsigned:"Certifikát čitateľný — podpis neoverený", unsignedSub:"Zadajte kľúč umelca nižšie na potvrdenie podpisu.",
+    invalid:"Podpis sa nezhoduje", invalidSub:"Tento certifikát mohol byť zmenený alebo je kľúč nesprávny.",
+    nodata:"V tomto odkaze nie sú údaje certifikátu.",
+    eyebrow:"Certifikát pravosti",
+    artist:"Umelec",year:"Rok",technique:"Technika",support:"Podklad",
+    sheet:"Rozmer listu",area:"Plocha diela",status:"Stav edície",
+    editionId:"ID edície",editionNo:"Číslo edície",gallery:"Galéria",
+    issued:"Dátum vydania",serial:"Číslo",
+    keylabel:"Podpisový kľúč umelca",
+    keyhint:"Pozná ho len vydávajúci umelec. Zadajte ho na potvrdenie, že certifikát je pravý a nezmenený.",
+    disc:"Tento certifikát pravosti potvrdzuje autorstvo a identifikáciu diela na základe informácií poskytnutých umelcom alebo oprávneným zástupcom. Automaticky neprevádza autorské práva ani vlastníctvo, pokiaľ to nie je výslovne uvedené v samostatnej dohode."
   }
 };
+// Bilingual field label: English only for EN, "<cert language> / English" for UK / SK
+function vlab(key, lang){
+  const en = T.en[key];
+  if(lang==='en' || !T[lang]) return en;
+  return T[lang][key] + ' / ' + en;
+}
 
 function decodeData(str){
   str = str.replace(/-/g,'+').replace(/_/g,'/');
@@ -146,20 +166,20 @@ function render(d, lang){
       <span class="txt"><b id="st-title">${statusTitle}</b><span id="st-sub">${statusSub}</span></span>
     </div>
     <div class="card"><div class="ci">
-      <div class="eyebrow">${t.eyebrow}</div>
+      <div class="eyebrow">${vlab('eyebrow',lang)}</div>
       <div class="ti">${esc(d.ti||'—')}</div>
       <div class="rule"></div>
-      ${rowHTML(t.artist,d.ar)}
-      ${rowHTML(t.year,d.yr)}
-      ${rowHTML(t.technique,d.te)}
-      ${rowHTML(t.support,d.su)}
-      ${rowHTML(t.sheet,d.ss)}
-      ${rowHTML(t.area,d.aa)}
-      ${rowHTML(t.status,d.se)}
-      ${rowHTML(t.editionId,d.ei)}
-      ${rowHTML(t.editionNo, d.en ? (d.en + (d.et ? ' / '+d.et : '')) : '')}
-      ${rowHTML(t.gallery,d.gl)}
-      ${rowHTML(t.issued,d.is)}
+      ${rowHTML(vlab('artist',lang),d.ar)}
+      ${rowHTML(vlab('year',lang),d.yr)}
+      ${rowHTML(vlab('technique',lang),d.te)}
+      ${rowHTML(vlab('support',lang),d.su)}
+      ${rowHTML(vlab('sheet',lang),d.ss)}
+      ${rowHTML(vlab('area',lang),d.aa)}
+      ${rowHTML(vlab('status',lang),d.se)}
+      ${rowHTML(vlab('editionId',lang),d.ei)}
+      ${rowHTML(vlab('editionNo',lang), d.en ? (d.en + (d.et ? ' / '+d.et : '')) : '')}
+      ${rowHTML(vlab('gallery',lang),d.gl)}
+      ${rowHTML(vlab('issued',lang),d.is)}
       <div class="rule"></div>
       <div class="serial">${esc(d.sn||'')}</div>
       <div class="disc">${t.disc}</div>

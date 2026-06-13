@@ -85,7 +85,7 @@
 
   .rows{margin-top:30px}
   .r{display:flex;align-items:baseline;padding:7px 0;font-size:14px}
-  .r .rl{width:175px;flex-shrink:0;font-weight:700}
+  .r .rl{width:232px;flex-shrink:0;font-weight:700}
   .r .rv{flex:1}
 
   .sign-area{display:flex;align-items:flex-end;gap:34px;margin-top:38px}
@@ -127,6 +127,7 @@
     <div class="langtabs">
       <button id="tab-en" class="on" onclick="setLang('en')">English</button>
       <button id="tab-uk" onclick="setLang('uk')">Українська</button>
+      <button id="tab-sk" onclick="setLang('sk')">Slovenčina</button>
     </div>
 
     <div class="field">
@@ -135,7 +136,7 @@
     </div>
     <div class="field">
       <label>Title of artwork / Назва твору</label>
-      <input id="title" oninput="render()" placeholder="Papa Leone XIV — Preghiera per il mondo">
+      <input id="title" oninput="render()" placeholder="Summer wind">
     </div>
     <div class="two">
       <div class="field">
@@ -325,26 +326,41 @@
 </div>
 
 <script>
+// UI strings (banner / links) per interface language
 const T = {
-  en:{
-    coa:"Certificate of Authenticity", ident:"Artwork Identification",
-    artist:"Artist:", title:"Title of artwork:", year:"Year:", technique:"Technique:",
-    support:"Support:", sheet:"Sheet size:", area:"Artwork area:", status:"Status Edition:",
-    editionId:"Edition ID:", editionNo:"Edition number:", artistSign:"Artist's signature",
-    date:"Date:", gallerySign:g=>(g||"Gallery")+" signature:",
-    consentText:"To improve this service we log each certificate you generate — its details, your device info and IP / approximate location. We don’t sell this data. You can decline and still use everything.",
-    consentAccept:"Accept", consentDecline:"Decline", privacyLink:"Privacy & data"
-  },
-  uk:{
-    coa:"Сертифікат автентичності", ident:"Ідентифікація твору",
-    artist:"Художник:", title:"Назва твору:", year:"Рік:", technique:"Техніка:",
-    support:"Основа:", sheet:"Розмір аркуша:", area:"Розмір зображення:", status:"Статус видання:",
-    editionId:"ID видання:", editionNo:"Номер у тиражі:", artistSign:"Підпис художника",
-    date:"Дата:", gallerySign:g=>"Підпис "+(g||"галереї")+":",
-    consentText:"Щоб покращувати сервіс, ми фіксуємо кожен створений сертифікат — його дані, інформацію про ваш пристрій та IP / приблизне місцезнаходження. Ми не продаємо ці дані. Можна відхилити й користуватися далі.",
-    consentAccept:"Прийняти", consentDecline:"Відхилити", privacyLink:"Приватність і дані"
-  }
+  en:{ consentText:"To improve this service we log each certificate you generate — its details, your device info and IP / approximate location. We don’t sell this data. You can decline and still use everything.",
+       consentAccept:"Accept", consentDecline:"Decline", privacyLink:"Privacy & data" },
+  uk:{ consentText:"Щоб покращувати сервіс, ми фіксуємо кожен створений сертифікат — його дані, інформацію про ваш пристрій та IP / приблизне місцезнаходження. Ми не продаємо ці дані. Можна відхилити й користуватися далі.",
+       consentAccept:"Прийняти", consentDecline:"Відхилити", privacyLink:"Приватність і дані" },
+  sk:{ consentText:"Na zlepšenie služby zaznamenávame každý vygenerovaný certifikát — jeho údaje, informácie o vašom zariadení a IP / približnú polohu. Tieto údaje nepredávame. Môžete odmietnuť a naďalej používať všetko.",
+       consentAccept:"Prijať", consentDecline:"Odmietnuť", privacyLink:"Súkromie a údaje" }
 };
+
+// Certificate labels (no colon). EN is the base; UK/SK are shown as "<selected> / English".
+const LBL = {
+  en:{ coa:"Certificate of Authenticity", ident:"Artwork Identification", artist:"Artist",
+       title:"Title of artwork", year:"Year", technique:"Technique", support:"Support",
+       sheet:"Sheet size", area:"Artwork area", status:"Status Edition", editionId:"Edition ID",
+       editionNo:"Edition number", artistSign:"Artist's signature", date:"Date", signWord:"signature" },
+  uk:{ coa:"Сертифікат автентичності", ident:"Ідентифікація твору", artist:"Художник",
+       title:"Назва твору", year:"Рік", technique:"Техніка", support:"Основа",
+       sheet:"Розмір аркуша", area:"Розмір зображення", status:"Статус видання", editionId:"ID видання",
+       editionNo:"Номер у тиражі", artistSign:"Підпис художника", date:"Дата", signWord:"підпис" },
+  sk:{ coa:"Certifikát pravosti", ident:"Identifikácia diela", artist:"Umelec",
+       title:"Názov diela", year:"Rok", technique:"Technika", support:"Podklad",
+       sheet:"Rozmer listu", area:"Plocha diela", status:"Stav edície", editionId:"ID edície",
+       editionNo:"Číslo edície", artistSign:"Podpis umelca", date:"Dátum", signWord:"podpis" }
+};
+// Bilingual label: English only for EN; "<selected> / English" for UK / SK.
+function lab(key){
+  const en = LBL.en[key];
+  if(LANG==='en' || !LBL[LANG]) return en;
+  return LBL[LANG][key] + ' / ' + en;
+}
+function gallerySignLabel(gl){
+  const w = (LANG==='en') ? LBL.en.signWord : (LBL[LANG].signWord + ' / ' + LBL.en.signWord);
+  return ((gl||'') + ' ' + w).trim() + ':';
+}
 let LANG = 'en';
 let artworkImg = '';                 // dataURL of uploaded artwork
 const $ = id => document.getElementById(id);
@@ -364,6 +380,7 @@ function setLang(l){
   LANG = l;
   $('tab-en').classList.toggle('on', l==='en');
   $('tab-uk').classList.toggle('on', l==='uk');
+  $('tab-sk').classList.toggle('on', l==='sk');
   consentText();
   render();
 }
@@ -426,25 +443,25 @@ function render(){
   // edition code follows the status (read before collect() reads it)
   $('editionCode').value = STATUS_CODE[$('status').value] || '';
 
-  const d = collect(), t = T[LANG], id = certId(d);
+  const d = collect(), id = certId(d);
 
   // auto-built identifiers shown back in the form
   $('editionId').value = d.ei;
   $('certNo').value = id;
 
-  // labels
-  $('p1-title').textContent = t.coa;
-  $('p2-title').textContent = t.ident;
-  $('l-artist').textContent = t.artist;     $('l-title').textContent = t.title;
-  $('l-year').textContent = t.year;         $('l-technique').textContent = t.technique;
-  $('l-support').textContent = t.support;   $('l-sheet').textContent = t.sheet;
-  $('l-area').textContent = t.area;         $('l-status').textContent = t.status;
-  $('l-editionId').textContent = t.editionId; $('l-editionNo').textContent = t.editionNo;
-  $('l-title2').textContent = t.title;      $('l-editionId2').textContent = t.editionId;
-  $('l-editionNo2').textContent = t.editionNo; $('l-date').textContent = t.date;
-  $('l-artistSign1').textContent = t.artistSign; $('l-artistSign2').textContent = t.artistSign;
-  $('l-gallerySign1').textContent = t.gallerySign(d.gl);
-  $('l-gallerySign2').textContent = t.gallerySign(d.gl);
+  // labels — bilingual ("<selected> / English") for UK/SK, English only for EN
+  $('p1-title').textContent = lab('coa');
+  $('p2-title').textContent = lab('ident');
+  $('l-artist').textContent = lab('artist')+':';       $('l-title').textContent = lab('title')+':';
+  $('l-year').textContent = lab('year')+':';           $('l-technique').textContent = lab('technique')+':';
+  $('l-support').textContent = lab('support')+':';     $('l-sheet').textContent = lab('sheet')+':';
+  $('l-area').textContent = lab('area')+':';           $('l-status').textContent = lab('status')+':';
+  $('l-editionId').textContent = lab('editionId')+':'; $('l-editionNo').textContent = lab('editionNo')+':';
+  $('l-title2').textContent = lab('title')+':';        $('l-editionId2').textContent = lab('editionId')+':';
+  $('l-editionNo2').textContent = lab('editionNo')+':';$('l-date').textContent = lab('date')+':';
+  $('l-artistSign1').textContent = lab('artistSign');  $('l-artistSign2').textContent = lab('artistSign');
+  $('l-gallerySign1').textContent = gallerySignLabel(d.gl);
+  $('l-gallerySign2').textContent = gallerySignLabel(d.gl);
 
   // values
   $('p1-id').textContent = id;              $('p2-id').textContent = id;
