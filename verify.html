@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Verify Certificate · ArtCert</title>
+<title>Verify Certificate · ArtCOA</title>
 <link rel="icon" type="image/jpeg" href="icon.jpg">
 <link rel="apple-touch-icon" href="icon.jpg">
 <meta property="og:title" content="Verify Certificate · ArtCOA">
@@ -18,19 +18,21 @@
     --seal:#7c2d2d;--ok:#2f5d3a;--warn:#8a5a1c;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:Georgia,'Times New Roman',serif;background:var(--paper);
-       color:var(--ink);line-height:1.55;min-height:100vh}
-  .wrap{max-width:620px;margin:0 auto;padding:40px 24px 80px}
+  body{font-family:'Helvetica Neue',Arial,sans-serif;background:var(--paper);
+       color:#111;line-height:1.5;min-height:100vh}
+  .wrap{max-width:640px;margin:0 auto;padding:28px 18px 70px}
 
-  .top{text-align:center;padding-bottom:28px;border-bottom:1px solid var(--line);margin-bottom:32px}
-  .mark{font-size:12px;letter-spacing:.35em;text-transform:uppercase;color:var(--seal)}
-  .top h1{font-size:22px;font-weight:400;letter-spacing:.04em;margin-top:8px}
+  .top{display:flex;align-items:center;justify-content:center;gap:14px;
+       padding-bottom:20px;border-bottom:1px solid var(--line);margin-bottom:26px}
+  .top img{height:46px;border-radius:6px;display:block}
+  .mark{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--seal)}
+  .top h1{font-size:18px;font-weight:600;letter-spacing:.01em}
 
-  .status{display:flex;align-items:center;gap:14px;padding:20px 22px;
-          border:1px solid var(--line);margin-bottom:28px;background:#fff}
+  .status{display:flex;align-items:center;gap:14px;padding:18px 20px;
+          border:1px solid var(--line);margin-bottom:24px;background:#fff}
   .status .dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
-  .status .txt b{display:block;font-size:15px;letter-spacing:.05em}
-  .status .txt span{font-size:12px;color:var(--stone)}
+  .status .txt b{display:block;font-size:15px}
+  .status .txt span{font-size:12.5px;color:var(--stone)}
   .status.valid .dot{background:var(--ok)}
   .status.valid{border-left:3px solid var(--ok)}
   .status.unsigned .dot{background:var(--warn)}
@@ -38,34 +40,37 @@
   .status.invalid .dot{background:var(--seal)}
   .status.invalid{border-left:3px solid var(--seal)}
 
-  .card{background:#fff;border:1px solid var(--line);padding:34px 32px;position:relative}
-  .card::before{content:"";position:absolute;inset:12px;border:1px solid var(--line);pointer-events:none}
+  /* certificate-matching card (mirrors the generated PDF look) */
+  .card{background:#fff;border:1px solid #111;padding:34px 30px;position:relative}
+  .card::before{content:"";position:absolute;inset:6px;border:1px solid #111;pointer-events:none}
   .ci{position:relative;z-index:1}
-  .eyebrow{text-align:center;font-size:10px;letter-spacing:.4em;
-          text-transform:uppercase;color:var(--seal)}
-  .ti{text-align:center;font-size:20px;font-style:italic;margin:18px 0 4px}
-  .rule{height:1px;background:var(--line);margin:18px 0}
-  .row{display:flex;justify-content:space-between;gap:16px;padding:6px 0;font-size:14px;align-items:baseline}
-  .row .k{color:var(--stone);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+  .c-title{text-align:center;font-size:17px;font-weight:700;letter-spacing:.01em;line-height:1.35}
+  .c-id{text-align:center;font-size:12.5px;color:#333;margin-top:8px;
+        font-family:'Courier New',monospace}
+  .rule{height:1px;background:var(--line);margin:20px 0}
+  .row{display:flex;justify-content:space-between;gap:14px;padding:7px 0;font-size:14px;
+       align-items:baseline;flex-wrap:wrap}
+  .row .k{font-weight:700;color:#111;flex:1;min-width:150px}
   .row .v{text-align:right}
-  .serial{text-align:center;font-family:'Courier New',monospace;font-size:11px;
-          letter-spacing:.18em;color:var(--stone);margin-top:18px}
-  .disc{font-size:10px;color:var(--stone);text-align:center;line-height:1.6;
-        margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+  .disc{font-size:10.5px;color:var(--stone);text-align:center;line-height:1.6;
+        margin-top:20px;padding-top:14px;border-top:1px solid var(--line)}
   .empty{text-align:center;color:var(--stone);padding:60px 20px;font-size:15px}
-  .verify-key{margin-top:26px;padding:16px 18px;background:#f3f1ec;border-left:2px solid var(--seal)}
-  .verify-key label{display:block;font-size:11px;letter-spacing:.1em;
-        text-transform:uppercase;color:var(--stone);margin-bottom:8px}
-  .verify-key input{width:100%;font-family:Georgia,serif;font-size:14px;
-        padding:9px 11px;border:1px solid var(--line);background:#fff}
-  .verify-key p{font-size:11px;color:var(--stone);margin-top:8px;line-height:1.5}
+  .verify-key{margin-top:24px;padding:16px 18px;background:#f3f1ec;border-left:3px solid var(--seal)}
+  .verify-key label{display:block;font-size:11px;letter-spacing:.08em;
+        text-transform:uppercase;color:var(--stone);margin-bottom:8px;font-weight:600}
+  .verify-key input{width:100%;font-family:'Helvetica Neue',Arial,sans-serif;font-size:15px;
+        padding:10px 12px;border:1px solid var(--line);background:#fff}
+  .verify-key p{font-size:11.5px;color:var(--stone);margin-top:8px;line-height:1.5}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="mark">◇ ArtCert</div>
-    <h1 id="h-title">Certificate Verification</h1>
+    <a href="https://smalta.gallery/" target="_blank" rel="noopener"><img src="smalta-logo.jpg" alt="Smalta Art Gallery"></a>
+    <div>
+      <div class="mark">◇ ArtCOA</div>
+      <h1 id="h-title">Certificate Verification</h1>
+    </div>
   </div>
   <div id="root"></div>
 </div>
@@ -77,7 +82,7 @@ const T = {
     unsigned:"Certificate readable — signature not checked", unsignedSub:"Enter the artist's key below to confirm the signature.",
     invalid:"Signature does not match", invalidSub:"This certificate may have been altered or the key is wrong.",
     nodata:"No certificate data found in this link.",
-    eyebrow:"Certificate of Authenticity",
+    eyebrow:"Certificate of Authenticity", title:"Title of artwork",
     artist:"Artist",year:"Year",technique:"Technique",support:"Support",
     sheet:"Sheet size",area:"Artwork area",status:"Status Edition",
     editionId:"Edition ID",editionNo:"Edition number",gallery:"Gallery",
@@ -91,7 +96,7 @@ const T = {
     unsigned:"Сертифікат читається — підпис не перевірено", unsignedSub:"Введіть ключ художника нижче, щоб підтвердити підпис.",
     invalid:"Підпис не співпадає", invalidSub:"Сертифікат міг бути змінений або введено невірний ключ.",
     nodata:"У цьому посиланні немає даних сертифіката.",
-    eyebrow:"Сертифікат автентичності",
+    eyebrow:"Сертифікат автентичності", title:"Назва твору",
     artist:"Художник",year:"Рік",technique:"Техніка",support:"Основа",
     sheet:"Розмір аркуша",area:"Розмір зображення",status:"Статус видання",
     editionId:"ID видання",editionNo:"Номер у тиражі",gallery:"Галерея",
@@ -105,7 +110,7 @@ const T = {
     unsigned:"Certifikát čitateľný — podpis neoverený", unsignedSub:"Zadajte kľúč umelca nižšie na potvrdenie podpisu.",
     invalid:"Podpis sa nezhoduje", invalidSub:"Tento certifikát mohol byť zmenený alebo je kľúč nesprávny.",
     nodata:"V tomto odkaze nie sú údaje certifikátu.",
-    eyebrow:"Certifikát pravosti",
+    eyebrow:"Certifikát pravosti", title:"Názov diela",
     artist:"Umelec",year:"Rok",technique:"Technika",support:"Podklad",
     sheet:"Rozmer listu",area:"Plocha diela",status:"Stav edície",
     editionId:"ID edície",editionNo:"Číslo edície",gallery:"Galéria",
@@ -166,10 +171,11 @@ function render(d, lang){
       <span class="txt"><b id="st-title">${statusTitle}</b><span id="st-sub">${statusSub}</span></span>
     </div>
     <div class="card"><div class="ci">
-      <div class="eyebrow">${vlab('eyebrow',lang)}</div>
-      <div class="ti">${esc(d.ti||'—')}</div>
+      <div class="c-title">${vlab('eyebrow',lang)}</div>
+      <div class="c-id">${esc(d.sn||'')}</div>
       <div class="rule"></div>
       ${rowHTML(vlab('artist',lang),d.ar)}
+      ${rowHTML(vlab('title',lang),d.ti)}
       ${rowHTML(vlab('year',lang),d.yr)}
       ${rowHTML(vlab('technique',lang),d.te)}
       ${rowHTML(vlab('support',lang),d.su)}
@@ -181,7 +187,6 @@ function render(d, lang){
       ${rowHTML(vlab('gallery',lang),d.gl)}
       ${rowHTML(vlab('issued',lang),d.is)}
       <div class="rule"></div>
-      <div class="serial">${esc(d.sn||'')}</div>
       <div class="disc">${t.disc}</div>
     </div></div>
     ${keyBox}`;
