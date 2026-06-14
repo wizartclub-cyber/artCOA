@@ -39,6 +39,8 @@
   .status.unsigned{border-left:3px solid var(--warn)}
   .status.invalid .dot{background:var(--seal)}
   .status.invalid{border-left:3px solid var(--seal)}
+  .status.revoked .dot{background:var(--seal)}
+  .status.revoked{border-left:3px solid var(--seal)}
 
   /* certificate-matching card (mirrors the generated PDF look) */
   .card{background:#fff;border:1px solid #111;padding:34px 30px;position:relative}
@@ -84,6 +86,7 @@ const T = {
     valid:"Authentic — signature verified", validSub:"Verified with Smalta Art Gallery’s public key.",
     unsigned:"Not signed", unsignedSub:"This certificate carries no digital signature.",
     invalid:"Signature does not match", invalidSub:"Not signed by the gallery, or the certificate was altered.",
+    revoked:"Revoked", revokedSub:"This certificate has been revoked by the gallery.",
     nodata:"No certificate data found in this link.",
     eyebrow:"Certificate of Authenticity", title:"Title of artwork", category:"Category",
     artist:"Artist",year:"Year",technique:"Technique",support:"Support",
@@ -98,6 +101,7 @@ const T = {
     valid:"Автентичний — підпис підтверджено", validSub:"Перевірено публічним ключем Smalta Art Gallery.",
     unsigned:"Без підпису", unsignedSub:"Цей сертифікат не має цифрового підпису.",
     invalid:"Підпис не співпадає", invalidSub:"Не підписано галереєю або сертифікат було змінено.",
+    revoked:"Відкликано", revokedSub:"Цей сертифікат було відкликано галереєю.",
     nodata:"У цьому посиланні немає даних сертифіката.",
     eyebrow:"Сертифікат автентичності", title:"Назва твору", category:"Категорія",
     artist:"Художник",year:"Рік",technique:"Техніка",support:"Основа",
@@ -112,6 +116,7 @@ const T = {
     valid:"Pravé — podpis overený", validSub:"Overené verejným kľúčom Smalta Art Gallery.",
     unsigned:"Bez podpisu", unsignedSub:"Tento certifikát nemá digitálny podpis.",
     invalid:"Podpis sa nezhoduje", invalidSub:"Nepodpísané galériou alebo certifikát bol zmenený.",
+    revoked:"Zrušené", revokedSub:"Tento certifikát galéria zrušila.",
     nodata:"V tomto odkaze nie sú údaje certifikátu.",
     eyebrow:"Certifikát pravosti", title:"Názov diela", category:"Kategória",
     artist:"Umelec",year:"Rok",technique:"Technika",support:"Podklad",
@@ -237,12 +242,24 @@ function setBar(cls, title, sub){
   document.getElementById('st-title').textContent=title;
   document.getElementById('st-sub').textContent=sub;
 }
+// Gallery registry endpoint (same Apps Script as analytics) — for revocation lookup
+const REGISTRY_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzG71Vmg633_8_wM7i9QcIGzwb8Zg-_1LLWhrNytw4UISW9bHwLrZyo02-MEP_CRiNkwQ/exec';
+async function isRevoked(sn){
+  if(!REGISTRY_ENDPOINT || !sn) return false;
+  try{
+    const r = await fetch(REGISTRY_ENDPOINT + '?revoked=1', {cache:'no-store'});
+    const j = await r.json();
+    return Array.isArray(j.revoked) && j.revoked.indexOf(String(sn)) !== -1;
+  }catch(e){ return false; }     // can't reach registry → don't claim revoked
+}
 async function updateStatus(){
   const d=window._cert, lang=window._lang, t=T[lang]||T.en;
   let ok; try{ ok = await verifySig(d); }catch(e){ ok = false; }
-  if(ok === null){ setBar('unsigned', t.unsigned, t.unsignedSub); }
-  else if(ok){ setBar('valid', t.valid, t.validSub); }
-  else { setBar('invalid', t.invalid, t.invalidSub); }
+  if(ok === null){ setBar('unsigned', t.unsigned, t.unsignedSub); return; }
+  if(!ok){ setBar('invalid', t.invalid, t.invalidSub); return; }
+  // signature valid → check the gallery registry for revocation
+  if(await isRevoked(d.sn)){ setBar('revoked', t.revoked, t.revokedSub); }
+  else { setBar('valid', t.valid, t.validSub); }
 }
 
 (function init(){

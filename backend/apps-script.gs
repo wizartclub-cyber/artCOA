@@ -104,8 +104,22 @@ function doPost(e) {
   }
 }
 
-// Optional: GET returns all rows as JSON (handy for custom dashboards).
-function doGet() {
+// GET ?revoked=1 → list of revoked certificate numbers (for verify.html).
+// GET (no params)  → analytics rows (handy for custom dashboards).
+function doGet(e) {
+  if (e && e.parameter && e.parameter.revoked) {
+    var rsheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(REGISTRY_SHEET);
+    var revoked = [];
+    if (rsheet) {
+      var data = rsheet.getDataRange().getValues();
+      var rcol = REGISTRY_HEADERS.length - 1;            // 'Revoked' is the last column
+      for (var i = 1; i < data.length; i++) {
+        if (String(data[i][rcol]).trim() !== '') revoked.push(String(data[i][1])); // Certificate no.
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({ revoked: revoked }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
   var rows = sheet ? sheet.getDataRange().getValues() : [];
   return ContentService
