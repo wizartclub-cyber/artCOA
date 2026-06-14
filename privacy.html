@@ -56,6 +56,7 @@
       <li><b>On your device (localStorage):</b> your consent choice, an anonymous visitor id, and — only if you (the gallery) tick “Remember on this device” — your signing key. This never leaves your browser unless you choose to send it.</li>
       <li><b>Certificate content</b> you enter (e.g. artist, title) is encoded into the certificate’s QR/verification link and shown to anyone who opens that link. This is the certificate’s purpose; it may include an artist’s name.</li>
       <li><b>Artwork images</b> are resized in your browser and uploaded to <b>Cloudinary</b> (image hosting/CDN); the resulting URL is embedded in the certificate so the verification page can show the artwork. Images are publicly accessible via the certificate link.</li>
+      <li><b>Registry of issued certificates</b> (the gallery’s own record): when a <b>signed</b> certificate is issued, its full data (artist, title, edition, image URL and verification link) is saved to a private Google Sheet so the gallery can look it up, reissue or revoke it. Controller: Smalta Art Gallery; legal basis: legitimate interest / performance of contract.</li>
     </ul>
 
     <h2>Why (purposes &amp; legal basis)</h2>
@@ -94,6 +95,7 @@
       <li><b>На вашому пристрої (localStorage):</b> ваш вибір згоди, анонімний ідентифікатор відвідувача та — лише якщо ви (галерея) позначите «Запам'ятати на пристрої» — ваш ключ підпису. Він не залишає браузер, доки ви самі його не надішлете.</li>
       <li><b>Дані сертифіката</b>, які ви вводите (напр. художник, назва), кодуються в QR/посилання перевірки й показуються кожному, хто відкриє це посилання. Це і є призначення сертифіката; вони можуть містити ім'я художника.</li>
       <li><b>Зображення творів</b> зменшуються у вашому браузері й завантажуються в <b>Cloudinary</b> (хостинг зображень); отриманий URL вбудовується в сертифікат, щоб сторінка перевірки показувала твір. Зображення публічно доступні за посиланням сертифіката.</li>
+      <li><b>Реєстр виданих сертифікатів</b> (власний запис галереї): при видачі <b>підписаного</b> сертифіката його повні дані (художник, назва, тираж, URL фото та посилання для перевірки) зберігаються в приватну Google-таблицю, щоб галерея могла знайти, перевипустити чи відкликати його. Володілець: Smalta Art Gallery; підстава: законний інтерес / виконання договору.</li>
     </ul>
 
     <h2>Навіщо (мета та правова підстава)</h2>
@@ -132,6 +134,7 @@
       <li><b>Vo vašom zariadení (localStorage):</b> váš súhlas, anonymný identifikátor návštevníka a — iba ak vy (galéria) zaškrtnete „Zapamätať na tomto zariadení“ — váš podpisový kľúč. Neopustí prehliadač, kým ho sami neodošlete.</li>
       <li><b>Údaje certifikátu</b>, ktoré zadáte (napr. umelec, názov), sa zakódujú do QR/overovacieho odkazu a zobrazia sa každému, kto odkaz otvorí. To je účel certifikátu; môžu obsahovať meno umelca.</li>
       <li><b>Obrázky diel</b> sa zmenšia vo vašom prehliadači a nahrajú do <b>Cloudinary</b> (hosting obrázkov); výsledná URL sa vloží do certifikátu, aby overovacia stránka zobrazila dielo. Obrázky sú verejne dostupné cez odkaz certifikátu.</li>
+      <li><b>Register vydaných certifikátov</b> (vlastný záznam galérie): pri vydaní <b>podpísaného</b> certifikátu sa jeho úplné údaje (umelec, názov, edícia, URL obrázka a overovací odkaz) uložia do súkromnej Google tabuľky, aby ich galéria mohla vyhľadať, znova vydať alebo zrušiť. Prevádzkovateľ: Smalta Art Gallery; základ: oprávnený záujem / plnenie zmluvy.</li>
     </ul>
 
     <h2>Prečo (účel a právny základ)</h2>

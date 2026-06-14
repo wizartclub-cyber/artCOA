@@ -30,6 +30,14 @@ var HEADERS = [
   'Category'
 ];
 
+// Registry of ISSUED certificates (full data) — a separate tab. Written only for SIGNED certs.
+var REGISTRY_SHEET = 'Registry';
+var REGISTRY_HEADERS = [
+  'Issued at', 'Certificate no.', 'Edition ID', 'Copy', 'Edition size', 'Category', 'Status Edition',
+  'Artist', 'Title', 'Year', 'Technique', 'Support', 'Sheet size', 'Artwork area',
+  'Gallery', 'Date', 'Image URL', 'Verify link', 'Revoked'
+];
+
 function getSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
@@ -46,13 +54,37 @@ function getSheet_() {
   return sheet;
 }
 
-// Receives an event from analytics.js and appends one row.
+function getRegistrySheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(REGISTRY_SHEET) || ss.insertSheet(REGISTRY_SHEET);
+  var needHeader = sheet.getLastRow() === 0;
+  if (!needHeader) {
+    var first = sheet.getRange(1, 1, 1, REGISTRY_HEADERS.length).getValues()[0];
+    if (first.join('') !== REGISTRY_HEADERS.join('')) needHeader = true;
+  }
+  if (needHeader) {
+    sheet.getRange(1, 1, 1, REGISTRY_HEADERS.length).setValues([REGISTRY_HEADERS]);
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+// Receives a POST from the site. kind:'registry' → Registry tab (issued certs); else → analytics.
 function doPost(e) {
   var lock = LockService.getScriptLock();
   lock.waitLock(30000);
   try {
     var d = {};
     try { d = JSON.parse(e.postData.contents); } catch (err) { d = {}; }
+    if (d.kind === 'registry') {
+      getRegistrySheet_().appendRow([
+        d.ts || '', d.sn || '', d.ei || '', d.en || '', d.et || '', d.cat || '', d.se || '',
+        d.ar || '', d.ti || '', d.yr || '', d.te || '', d.su || '', d.ss || '', d.aa || '',
+        d.gl || '', d.is || '', d.im || '', d.link || '', ''
+      ]);
+      return ContentService.createTextOutput(JSON.stringify({ ok: true }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
     var dev = d.device || {};
     getSheet_().appendRow([
       d.ts || '', d.action || '', d.serial || '', d.artist || '', d.title || '',

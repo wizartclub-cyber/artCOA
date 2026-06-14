@@ -735,6 +735,7 @@ async function issueEdition(){
       const d = {...d0, en:String(i)};
       const id = certId(d);
       const link = await buildLink(d);                 // each copy signed individually
+      recordToRegistry(d, id, link);                   // record each copy in the registry
       html += buildPage1(d, id, qrDataUrl(link)) + buildPage2(d, id);
     }
     $('batchPages').innerHTML = html;
@@ -959,10 +960,26 @@ function trackUse(action){
   try{ const d=collect(); if(window.ArtCOAAnalytics) ArtCOAAnalytics.track({...d, sn:certId(d)}, action); }
   catch(e){}
 }
+
+// Registry of issued certificates (gallery's own record). Only SIGNED certs are recorded,
+// so only real gallery issuances (made with the private key) reach the Registry sheet.
+const RECORD_REGISTRY = true;
+function recordToRegistry(d, sn, link){
+  if(!RECORD_REGISTRY || sigState !== 'signed') return;
+  const ep = (window.ArtCOAAnalytics && ArtCOAAnalytics.endpoint && ArtCOAAnalytics.endpoint()) || '';
+  if(!ep) return;
+  const row = { kind:'registry', ts:new Date().toISOString(), sn:sn, ei:d.ei, en:d.en, et:d.et,
+    cat:d.cat, se:d.se, ar:d.ar, ti:d.ti, yr:d.yr, te:d.te, su:d.su, ss:d.ss, aa:d.aa,
+    gl:d.gl, is:d.is, im:d.im, link:link };
+  try{ fetch(ep, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(row)}); }catch(e){}
+}
+
 // Save → browser print (real vector text = crisp & selectable). Choose "Save as PDF".
 async function makePDF(){
   if(imgUploadPromise) await imgUploadPromise;   // wait for the image URL before signing
   await refreshQR();              // ensure the printed QR carries a fresh signature
+  const d = collect();
+  recordToRegistry(d, certId(d), currentLink);
   trackUse('save');
   window.print();
 }
@@ -970,6 +987,7 @@ function sendPDF(){
   return withPdfBtn('sendbtn', async()=>{
     if(imgUploadPromise) await imgUploadPromise;
     await refreshQR();            // ensure the embedded QR is freshly signed
+    const dd = collect(); recordToRegistry(dd, certId(dd), currentLink);
     const {blob, filename} = await generatePdfFile();
     const file = new File([blob], filename, {type:'application/pdf'});
     if(navigator.canShare && navigator.canShare({files:[file]})){
