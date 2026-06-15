@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArtCOA — Admin guide</title>
+<link rel="icon" type="image/jpeg" href="icon.jpg">
+<style>
+  :root{--ink:#1a1714;--paper:#fbfaf7;--stone:#6b645b;--line:#d8d3c9;--seal:#7c2d2d;--ok:#2f5d3a}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Georgia,'Times New Roman',serif;background:var(--paper);color:var(--ink);line-height:1.6}
+  .wrap{max-width:820px;margin:0 auto;padding:0 22px 70px}
+  header{border-bottom:1px solid var(--line);padding:24px 0;display:flex;align-items:center;gap:16px}
+  header img{height:46px;border-radius:6px}
+  header h1{font-size:21px;font-weight:400}
+  .links{font-size:13px;margin-top:4px}
+  .links a{color:var(--seal);text-decoration:none;margin-right:12px}
+  .langtabs{display:flex;margin:22px 0;border:1px solid var(--line);width:fit-content}
+  .langtabs button{font-family:Georgia,serif;font-size:13px;letter-spacing:.06em;padding:9px 20px;background:#fff;border:none;cursor:pointer;color:var(--stone)}
+  .langtabs button.on{background:var(--ink);color:var(--paper)}
+  .block{display:none;padding-bottom:50px}
+  .block.on{display:block}
+  h2{font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:var(--stone);margin:26px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--line);font-weight:400}
+  p{margin:9px 0;font-size:15px}
+  ol,ul{margin:9px 0 9px 22px}
+  li{margin:5px 0}
+  a{color:var(--seal)}
+  code{font-family:'Courier New',monospace;font-size:13px;background:#f1eee8;padding:1px 5px;border-radius:3px}
+  .note{background:#f3f1ec;border-left:3px solid var(--seal);padding:12px 16px;margin:12px 0;font-size:14px}
+  footer{border-top:1px solid var(--line);padding:22px;text-align:center;font-size:13px;color:var(--stone)}
+  footer a{color:var(--seal);text-decoration:none}
+</style>
+</head>
+<body>
+<header>
+  <a href="https://smalta.gallery/" target="_blank" rel="noopener"><img src="smalta-logo.jpg" alt="Smalta Art Gallery"></a>
+  <div style="flex:1">
+    <h1>ArtCOA — Admin guide</h1>
+    <div class="links"><a href="admin-keys.html">Key registry</a><a href="admin.html">Usage stats</a><a href="index.html">Generator</a></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="langtabs">
+    <button id="t-en" class="on" onclick="show('en')">English</button>
+    <button id="t-uk" onclick="show('uk')">Українська</button>
+  </div>
+
+  <!-- ENGLISH -->
+  <div class="block on" id="b-en">
+    <p>This guide is for the gallery operator who manages signing keys, the certificate registry and settings. The admin pages are password-protected.</p>
+
+    <h2>1 · Signing keys — one per artist</h2>
+    <ul>
+      <li>Each artist (or gallery) has their own <b>ECDSA P-256</b> key pair. They generate it in <a href="keys.html" target="_blank">keys.html</a>, keep the <b>private</b> key, and send you their <b>public</b> key + their <b>ID</b> (the initials used in the Edition ID, e.g. <code>sd</code>).</li>
+      <li>In <a href="admin-keys.html">admin-keys.html</a> → <b>Approve a new signer</b>: pick Type, Name, ID, paste the public key → <b>Validate &amp; approve</b>.</li>
+      <li>The trusted list lives in <code>artist-keys.js</code>. After approving, click <b>Download artist-keys.js</b> and <b>deploy</b> it (commit/push). <b>Only the deployed file is trusted</b> — nothing is trusted from the QR link.</li>
+      <li>The generator shows <b>“✓ Signed (verifies)”</b> only if the pasted private key matches that artist’s registered public key; otherwise <b>“mismatch”</b> or <b>“artist not registered”</b>.</li>
+    </ul>
+
+    <h2>2 · Registry of issued certificates</h2>
+    <p>Every <b>signed</b> certificate is recorded to the <b>Registry</b> tab of your Google Sheet (id, edition, artwork data, image URL, verification link). This is your master list of everything issued. Unsigned/test certs are not recorded.</p>
+
+    <h2>3 · Revoking a certificate</h2>
+    <ul>
+      <li>In the <b>Registry</b> tab, put anything (e.g. a date) in the <b>Revoked</b> column next to the certificate.</li>
+      <li>The verification page checks the registry and shows <b>“Revoked”</b> for that certificate — even if the signature is still valid.</li>
+      <li>Requires the backend (Apps Script) to be redeployed with the current code.</li>
+    </ul>
+
+    <h2>4 · Backend (Google Apps Script)</h2>
+    <p>A free Apps Script web app stores the anonymous analytics <b>and</b> the registry in one Google Sheet. Setup instructions are inside <code>backend/apps-script.gs</code>. After any change to the backend code, <b>redeploy</b>: Deploy → Manage deployments → ✏️ → Version: <b>New version</b> → Deploy. The URL stays the same.</p>
+
+    <h2>5 · Usage analytics (admin.html)</h2>
+    <p>Anonymous events only — category, status, language, device. <b>No names, no IP</b> by default, and only after the buyer accepts the consent banner. View/filter and export CSV; the full data is in the Google Sheet.</p>
+
+    <h2>6 · Artwork images (Cloudinary)</h2>
+    <p>Images are resized for print and uploaded to Cloudinary; the URL is embedded in the (signed) certificate so the verification page shows the photo. Config in <code>index.html</code>: <code>CLOUDINARY_CLOUD</code> + <code>CLOUDINARY_PRESET</code> (an <i>unsigned</i> upload preset).</p>
+
+    <h2>7 · Admin password</h2>
+    <p><code>admin.html</code> and <code>admin-keys.html</code> are gated by a passphrase (<code>admin-gate.js</code>), stored only as a SHA-256 hash. Change it: on the gate click <b>Set / change passphrase</b> → copy the new hash into <code>admin-gate.js</code> → deploy. The default is <code>change-me-now</code> — <b>change it</b>.</p>
+    <div class="note"><b>Honest scope.</b> The password is a client-side <b>deterrent</b>, not server-grade security (the site is static). The real control over what is trusted is <b>GitHub repo (deploy) access</b> — only you can publish <code>artist-keys.js</code>. For true page-level protection use Cloudflare Access.</div>
+
+    <h2>8 · Security model (summary)</h2>
+    <ul>
+      <li>Per-artist asymmetric signatures (ECDSA P-256). Forgery is infeasible without the artist’s private key; any change to the data invalidates the signature; an unregistered artist cannot verify.</li>
+      <li>The trust anchor is the committed <code>artist-keys.js</code> (controlled by repo access), never the QR.</li>
+      <li>Limitations: certificate data still travels in the QR link; the registry &amp; revocation need the backend online.</li>
+    </ul>
+  </div>
+
+  <!-- УКРАЇНСЬКА -->
+  <div class="block" id="b-uk">
+    <p>Цей посібник — для оператора галереї, який керує ключами підпису, реєстром сертифікатів і налаштуваннями. Адмін-сторінки захищені паролем.</p>
+
+    <h2>1 · Ключі підпису — у кожного художника свій</h2>
+    <ul>
+      <li>У кожного художника (чи галереї) — власна пара <b>ECDSA P-256</b>. Він генерує її в <a href="keys.html" target="_blank">keys.html</a>, <b>приватний</b> ключ лишає собі, а тобі надсилає <b>публічний</b> ключ + свій <b>ID</b> (ініціали з Edition ID, напр. <code>sd</code>).</li>
+      <li>У <a href="admin-keys.html">admin-keys.html</a> → <b>Approve a new signer</b>: обери тип, ім'я, ID, встав публічний ключ → <b>Validate &amp; approve</b>.</li>
+      <li>Довірений список — у файлі <code>artist-keys.js</code>. Після апруву натисни <b>Download artist-keys.js</b> і <b>задеплой</b> (commit/push). <b>Довіряється лише задеплоєний файл</b> — з QR ключі не беруться.</li>
+      <li>Генератор показує <b>«✓ Signed (verifies)»</b> лише якщо приватний ключ відповідає зареєстрованому ключу цього художника; інакше <b>«mismatch»</b> або <b>«художника не зареєстровано»</b>.</li>
+    </ul>
+
+    <h2>2 · Реєстр виданих сертифікатів</h2>
+    <p>Кожен <b>підписаний</b> сертифікат записується у вкладку <b>Registry</b> твоєї Google-таблиці (ID, тираж, дані твору, URL фото, посилання для перевірки). Це твій повний список усього виданого. Непідписані/тестові не записуються.</p>
+
+    <h2>3 · Відкликання сертифіката</h2>
+    <ul>
+      <li>У вкладці <b>Registry</b> познач будь-що (напр. дату) у колонці <b>Revoked</b> навпроти сертифіката.</li>
+      <li>Сторінка перевірки звіряє реєстр і показує <b>«Відкликано»</b> для цього сертифіката — навіть якщо підпис ще дійсний.</li>
+      <li>Потрібно, щоб бекенд (Apps Script) був перерозгорнутий із поточним кодом.</li>
+    </ul>
+
+    <h2>4 · Бекенд (Google Apps Script)</h2>
+    <p>Безкоштовний веб-застосунок Apps Script зберігає знеособлену аналітику <b>і</b> реєстр в одній Google-таблиці. Інструкція — всередині <code>backend/apps-script.gs</code>. Після будь-якої зміни коду бекенда — <b>перерозгорни</b>: Deploy → Manage deployments → ✏️ → Version: <b>New version</b> → Deploy. URL лишається той самий.</p>
+
+    <h2>5 · Аналітика використання (admin.html)</h2>
+    <p>Лише знеособлені події — категорія, статус, мова, девайс. <b>Без імен та IP</b> за замовчуванням і лише після згоди покупця в банері. Перегляд/фільтр + експорт CSV; повні дані — у Google-таблиці.</p>
+
+    <h2>6 · Зображення творів (Cloudinary)</h2>
+    <p>Фото зменшується для друку й завантажується в Cloudinary; URL вбудовується в (підписаний) сертифікат, щоб сторінка перевірки показувала твір. Налаштування в <code>index.html</code>: <code>CLOUDINARY_CLOUD</code> + <code>CLOUDINARY_PRESET</code> (<i>unsigned</i> пресет).</p>
+
+    <h2>7 · Пароль адмінки</h2>
+    <p><code>admin.html</code> і <code>admin-keys.html</code> закриті паролем (<code>admin-gate.js</code>), що зберігається лише як SHA-256-хеш. Зміна: на гейті <b>Set / change passphrase</b> → встав новий хеш у <code>admin-gate.js</code> → деплой. Дефолт — <code>change-me-now</code>, <b>зміни його</b>.</p>
+    <div class="note"><b>Чесно про межі.</b> Пароль — клієнтський <b>стримувач</b>, а не серверний захист (сайт статичний). Справжній контроль над тим, що довіряється, — це <b>доступ до GitHub-репо</b> (тільки ти публікуєш <code>artist-keys.js</code>). Для повноцінного захисту сторінок — Cloudflare Access.</div>
+
+    <h2>8 · Модель безпеки (стисло)</h2>
+    <ul>
+      <li>Асиметричні підписи на кожного художника (ECDSA P-256). Підробка без приватного ключа неможлива; зміна даних робить підпис недійсним; незареєстрований художник не пройде перевірку.</li>
+      <li>Якір довіри — задеплоєний <code>artist-keys.js</code> (керується доступом до репо), ніколи не QR.</li>
+      <li>Обмеження: дані сертифіката досі в QR-посиланні; реєстр і відкликання потребують онлайн-бекенда.</li>
+    </ul>
+  </div>
+</div>
+
+<footer>© 2026 <a href="https://smalta.gallery/" target="_blank" rel="noopener">Smalta Art Gallery</a>. All rights reserved.</footer>
+
+<script>
+function show(l){
+  ['en','uk'].forEach(x=>{
+    document.getElementById('b-'+x).classList.toggle('on', x===l);
+    document.getElementById('t-'+x).classList.toggle('on', x===l);
+  });
+  document.documentElement.lang = l;
+}
+</script>
+</body>
+</html>
