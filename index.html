@@ -16,6 +16,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="analytics.js"></script>
+<script src="artist-keys.js"></script>
 <style>
   :root{
     --ink:#1a1714; --paper:#fbfaf7; --stone:#6b645b; --line:#d8d3c9;
@@ -783,13 +784,9 @@ async function ecdsaSign(message, b64){
   return bufToB64url(sig);
 }
 
-// Trusted registry of ARTIST public keys. Key = the artist's initials (same code used in the
-// Edition ID, e.g. "sd"). Register an artist by pasting their PUBLIC key here AND in verify.html
-// (identical). Each artist generates their own key pair in keys.html and sends you only the public key.
-const ARTIST_KEYS = {
-  // starter/placeholder — matches gallery-private-key.txt. Replace with the artist's own public key:
-  "sd": "eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6IldHWlhZeHZMRGNWMGJxVWJJUjRKNmVMamxRc0ZSUWxkZTNaejFxVm9XUlUiLCJ5IjoibTNvb1FtMXM2c3phWHB0ZEFrYVNUYUhCaUZyQWlZbWRRZnY4NnBsY2pLayJ9"
-};
+// Trusted registry of signer public keys, loaded from artist-keys.js (managed in admin-keys.html).
+// Key = the signer's initials/code (same code used in the Edition ID, e.g. "sd").
+const ARTIST_KEYS = window.ARTIST_KEYS || {};
 function b64urlToBuf(b64){
   b64 = b64.replace(/-/g,'+').replace(/_/g,'/');
   const bin = atob(b64), bytes = new Uint8Array(bin.length);

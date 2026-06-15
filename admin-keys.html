@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArtCOA — Signer key registry (admin)</title>
+<link rel="icon" type="image/jpeg" href="icon.jpg">
+<script src="artist-keys.js"></script>
+<style>
+  :root{--ink:#1a1714;--paper:#fbfaf7;--stone:#6b645b;--line:#d8d3c9;--seal:#7c2d2d;--ok:#2f5d3a;--warn:#8a5a1c}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,Segoe UI,Roboto,Georgia,serif;background:var(--paper);color:var(--ink);line-height:1.5}
+  .wrap{max-width:1080px;margin:0 auto;padding:26px 22px 80px}
+  h1{font-size:23px;font-weight:600}
+  .sub{color:var(--stone);font-size:13px;margin-top:4px}
+  .links{margin:10px 0 4px;font-size:13px}
+  .links a{color:var(--seal);text-decoration:none;margin-right:14px}
+  h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--stone);
+     margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line);font-weight:600}
+  label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--stone);margin:0 0 6px}
+  .field{margin-bottom:14px}
+  .row3{display:grid;grid-template-columns:160px 1fr 1fr;gap:14px}
+  @media(max-width:680px){.row3{grid-template-columns:1fr}}
+  input,select,textarea{width:100%;font:inherit;font-size:14px;border:1px solid var(--line);padding:9px 11px;background:#fff;border-radius:6px}
+  textarea{font-family:'Courier New',monospace;font-size:12px;resize:vertical}
+  .btn{font:inherit;font-size:13px;background:var(--ink);color:#fff;border:none;padding:10px 18px;border-radius:6px;cursor:pointer}
+  .btn:hover{background:var(--seal)}
+  .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .btn.ghost:hover{background:#f3f1ec}
+  .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+  .msg{font-size:13px;margin:8px 0;min-height:18px}
+  .msg.ok{color:var(--ok)} .msg.err{color:var(--seal)} .msg.warn{color:var(--warn)}
+  .note{background:#f3f1ec;border-left:3px solid var(--seal);padding:12px 16px;font-size:13px;margin:12px 0;border-radius:0 4px 4px 0}
+  table{border-collapse:collapse;width:100%;font-size:13px;background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#f3f1ec;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--stone);font-weight:600}
+  td.key{font-family:'Courier New',monospace;font-size:11px;max-width:240px;word-break:break-all;color:#555}
+  .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px}
+  .tag.artist{background:#e7efe9;color:var(--ok)} .tag.gallery{background:#eef0f5;color:#2d3a6b}
+  .rm{color:var(--seal);cursor:pointer;font-size:12px;border:none;background:none;text-decoration:underline}
+  .empty{padding:40px;text-align:center;color:var(--stone)}
+  code{background:#f1eee8;padding:1px 5px;border-radius:3px;font-family:'Courier New',monospace;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Signer key registry</h1>
+  <div class="sub">Approve artist / gallery public keys and manage who can be verified.</div>
+  <div class="links">
+    <a href="index.html">← Generator</a>
+    <a href="admin.html">Usage stats</a>
+    <a href="keys.html" target="_blank">Generate keys</a>
+  </div>
+
+  <div class="note">
+    <b>How it works.</b> Each artist/gallery generates their key pair in <a href="keys.html" target="_blank">keys.html</a>,
+    keeps the <b>private</b> key, and sends you their <b>public</b> key + their <b>ID</b> (initials/code used in the Edition ID).
+    Approve it below. Approvals take effect only after you <b>Download <code>artist-keys.js</code></b> and deploy it (commit/push).
+  </div>
+
+  <h2>Approve a new signer</h2>
+  <div class="row3">
+    <div class="field"><label>Type</label>
+      <select id="ktype"><option value="artist">Artist</option><option value="gallery">Gallery</option></select>
+    </div>
+    <div class="field"><label>Name</label><input id="kname" placeholder="Svitlana Dudenko"></div>
+    <div class="field"><label>ID (initials / code)</label><input id="kid" placeholder="sd"></div>
+  </div>
+  <div class="field"><label>Public key (paste — from keys.html)</label>
+    <textarea id="kkey" rows="3" placeholder="paste the public key…"></textarea>
+  </div>
+  <div class="bar"><button class="btn" onclick="approve()">Validate &amp; approve</button></div>
+  <div class="msg" id="msg"></div>
+
+  <h2>Approved registry (<span id="count">0</span>)</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Public key</th><th>Approved</th><th></th></tr></thead>
+    <tbody id="tb"></tbody>
+  </table>
+
+  <h2>Deploy</h2>
+  <p class="sub" style="margin-bottom:10px">Generate the trusted file that <code>index.html</code> and <code>verify.html</code> load. Commit/deploy it to apply changes.</p>
+  <div class="bar">
+    <button class="btn" onclick="downloadKeys()">Download artist-keys.js</button>
+    <button class="btn ghost" onclick="copyKeys()">Copy ARTIST_KEYS object</button>
+  </div>
+
+  <h2>Backup / restore</h2>
+  <div class="bar">
+    <button class="btn ghost" onclick="exportReg()">Export registry (JSON)</button>
+    <button class="btn ghost" onclick="document.getElementById('imp').click()">Import registry (JSON)</button>
+    <input id="imp" type="file" accept="application/json,.json" style="display:none" onchange="importReg(event)">
+  </div>
+  <div class="msg" id="msg2"></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const LS = 'artcoa_registry';
+function load(){ try{ return JSON.parse(localStorage.getItem(LS)||'[]'); }catch(e){ return []; } }
+function save(a){ localStorage.setItem(LS, JSON.stringify(a)); }
+function enc(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function parseKey(raw){
+  raw = (raw||'').trim();
+  try{ const j=JSON.parse(decodeURIComponent(escape(atob(raw.replace(/-/g,'+').replace(/_/g,'/'))))); if(j&&j.kty) return j; }catch(e){}
+  try{ const j=JSON.parse(raw); if(j&&j.kty) return j; }catch(e){}
+  return null;
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function msg(t,cls){ const e=$('msg'); e.textContent=t; e.className='msg '+(cls||''); }
+
+async function approve(){
+  const type=$('ktype').value, name=$('kname').value.trim(), id=$('kid').value.trim(), raw=$('kkey').value;
+  if(!id){ return msg('Enter an ID (the initials/code used in the Edition ID).','err'); }
+  const jwk = parseKey(raw);
+  if(!jwk){ return msg('Could not read the key (expected base64url or JWK JSON).','err'); }
+  if(jwk.kty!=='EC' || jwk.crv!=='P-256' || !jwk.x || !jwk.y){ return msg('Not an ECDSA P-256 public key.','err'); }
+  const hadPrivate = !!jwk.d;
+  const pub = {kty:jwk.kty, crv:jwk.crv, x:jwk.x, y:jwk.y};
+  try{ await crypto.subtle.importKey('jwk', pub, {name:'ECDSA',namedCurve:'P-256'}, false, ['verify']); }
+  catch(e){ return msg('Key failed to import: '+e.message,'err'); }
+  const reg = load();
+  if(reg.some(r=>r.id===id) && !confirm('ID "'+id+'" already exists. Replace its key?')) return;
+  const next = reg.filter(r=>r.id!==id);
+  next.push({id, name, type, key:enc(pub), at:new Date().toISOString()});
+  next.sort((a,b)=>a.id.localeCompare(b.id));
+  save(next);
+  $('kname').value=''; $('kid').value=''; $('kkey').value='';
+  msg('✓ Approved "'+id+'".'+(hadPrivate?' ⚠ You pasted a PRIVATE key — only the PUBLIC part was stored. Never share private keys!':'')+' Remember to Download artist-keys.js and deploy.', hadPrivate?'warn':'ok');
+  render();
+}
+
+function render(){
+  const reg = load();
+  $('count').textContent = reg.length;
+  if(!reg.length){ $('tb').innerHTML = '<tr><td class="empty" colspan="6">No approved signers yet.</td></tr>'; return; }
+  $('tb').innerHTML = reg.map(r=>`<tr>
+    <td><b>${esc(r.id)}</b></td>
+    <td>${esc(r.name||'')}</td>
+    <td><span class="tag ${esc(r.type)}">${esc(r.type)}</span></td>
+    <td class="key">${esc(r.key)}</td>
+    <td>${esc(r.at? new Date(r.at).toLocaleDateString() : '(deployed)')}</td>
+    <td><button class="rm" onclick="removeId('${esc(r.id)}')">remove</button></td>
+  </tr>`).join('');
+}
+function removeId(id){
+  if(!confirm('Remove "'+id+'" from the registry? (Applies after you re-deploy artist-keys.js.)')) return;
+  save(load().filter(r=>r.id!==id)); render();
+}
+
+function keysObj(){ const o={}; load().forEach(r=>o[r.id]=r.key); return o; }
+function keysFile(){
+  const o = keysObj(), ids = Object.keys(o);
+  return '/* ArtCOA — trusted registry of approved signer public keys (artists & galleries).\n'
+    + '   Key = signer id (initials/code, as in the Edition ID). Generated by admin-keys.html.\n'
+    + '   Deploy (commit) this file to update who can be verified. */\n'
+    + 'window.ARTIST_KEYS = {\n'
+    + ids.map(id=>'  '+JSON.stringify(id)+': '+JSON.stringify(o[id])).join(',\n')
+    + (ids.length?'\n':'') + '};\n';
+}
+function downloadBlob(name, content, type){
+  const b=new Blob([content],{type:type||'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+function downloadKeys(){ downloadBlob('artist-keys.js', keysFile(), 'application/javascript'); }
+function copyKeys(){
+  const txt = 'const ARTIST_KEYS = '+JSON.stringify(keysObj(), null, 2)+';';
+  (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject())
+    .then(()=>$('msg2').textContent='✓ Copied ARTIST_KEYS object to clipboard.')
+    .catch(()=>window.prompt('Copy:', txt));
+}
+function exportReg(){ downloadBlob('artcoa-key-registry.json', JSON.stringify(load(), null, 2), 'application/json'); }
+function importReg(ev){
+  const f = ev.target.files && ev.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try{
+      const arr = JSON.parse(e.target.result);
+      if(!Array.isArray(arr)) throw new Error('not an array');
+      save(arr); render(); $('msg2').textContent='✓ Imported '+arr.length+' record(s).';
+    }catch(err){ $('msg2').textContent='Import failed: '+err.message; }
+  };
+  r.readAsText(f);
+  ev.target.value='';
+}
+
+// seed from the currently-deployed artist-keys.js the first time
+(function init(){
+  let reg = load();
+  if(reg.length===0 && window.ARTIST_KEYS){
+    reg = Object.keys(window.ARTIST_KEYS).map(id=>({id, name:'(deployed)', type:'artist', key:window.ARTIST_KEYS[id], at:''}));
+    save(reg);
+  }
+  render();
+})();
+</script>
+</body>
+</html>

@@ -12,6 +12,7 @@
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://wizartclub-cyber.github.io/artCOA/icon.jpg">
+<script src="artist-keys.js"></script>
 <style>
   :root{
     --ink:#1a1714;--paper:#fbfaf7;--stone:#6b645b;--line:#d8d3c9;
@@ -168,12 +169,10 @@ function decodeData(str){
   const json = new TextDecoder().decode(bytes);
   return JSON.parse(json);
 }
-// ECDSA P-256 verification with each ARTIST's PUBLIC key (key id = artist initials).
-// The cert carries the initials (signed, so they can't be tampered); verify looks up the
-// matching public key here. MUST be identical to index.html's ARTIST_KEYS.
-const ARTIST_KEYS = {
-  "sd": "eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6IldHWlhZeHZMRGNWMGJxVWJJUjRKNmVMamxRc0ZSUWxkZTNaejFxVm9XUlUiLCJ5IjoibTNvb1FtMXM2c3phWHB0ZEFrYVNUYUhCaUZyQWlZbWRRZnY4NnBsY2pLayJ9"
-};
+// ECDSA P-256 verification with each signer's PUBLIC key (key id = artist initials / gallery code).
+// The cert carries the initials (signed, so they can't be tampered); verify looks up the matching
+// public key in the trusted registry loaded from artist-keys.js (managed in admin-keys.html).
+const ARTIST_KEYS = window.ARTIST_KEYS || {};
 function b64urlToStr(b64){
   b64=b64.replace(/-/g,'+').replace(/_/g,'/'); const bin=atob(b64);
   const bytes=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
