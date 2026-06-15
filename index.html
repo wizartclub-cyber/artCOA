@@ -783,23 +783,29 @@ async function ecdsaSign(message, b64){
   return bufToB64url(sig);
 }
 
-// Gallery PUBLIC key — MUST be identical to verify.html's GALLERY_PUBKEY. Used to self-check that
-// the pasted private key actually matches it; otherwise the certificate won't verify on scan.
-const GALLERY_PUBKEY = 'eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6IldHWlhZeHZMRGNWMGJxVWJJUjRKNmVMamxRc0ZSUWxkZTNaejFxVm9XUlUiLCJ5IjoibTNvb1FtMXM2c3phWHB0ZEFrYVNUYUhCaUZyQWlZbWRRZnY4NnBsY2pLayJ9';
+// Trusted registry of ARTIST public keys. Key = the artist's initials (same code used in the
+// Edition ID, e.g. "sd"). Register an artist by pasting their PUBLIC key here AND in verify.html
+// (identical). Each artist generates their own key pair in keys.html and sends you only the public key.
+const ARTIST_KEYS = {
+  // starter/placeholder — matches gallery-private-key.txt. Replace with the artist's own public key:
+  "sd": "eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6IldHWlhZeHZMRGNWMGJxVWJJUjRKNmVMamxRc0ZSUWxkZTNaejFxVm9XUlUiLCJ5IjoibTNvb1FtMXM2c3phWHB0ZEFrYVNUYUhCaUZyQWlZbWRRZnY4NnBsY2pLayJ9"
+};
 function b64urlToBuf(b64){
   b64 = b64.replace(/-/g,'+').replace(/_/g,'/');
   const bin = atob(b64), bytes = new Uint8Array(bin.length);
   for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
   return bytes.buffer;
 }
-let _galPub = null;
-async function galleryPubKey(){
-  if(_galPub) return _galPub;
-  _galPub = await crypto.subtle.importKey('jwk', JSON.parse(b64urlToStr(GALLERY_PUBKEY)), {name:'ECDSA', namedCurve:'P-256'}, false, ['verify']);
-  return _galPub;
+const _artPub = {};
+async function artistPubKey(kid){
+  const b64 = ARTIST_KEYS[kid]; if(!b64) return null;
+  if(_artPub[kid]) return _artPub[kid];
+  _artPub[kid] = await crypto.subtle.importKey('jwk', JSON.parse(b64urlToStr(b64)), {name:'ECDSA', namedCurve:'P-256'}, false, ['verify']);
+  return _artPub[kid];
 }
-async function verifiesWithGallery(message, sgB64){
-  try{ return await crypto.subtle.verify({name:'ECDSA', hash:'SHA-256'}, await galleryPubKey(), b64urlToBuf(sgB64), new TextEncoder().encode(message)); }
+async function verifiesWithArtist(message, sgB64, kid){
+  try{ const k = await artistPubKey(kid); if(!k) return false;
+    return await crypto.subtle.verify({name:'ECDSA', hash:'SHA-256'}, k, b64urlToBuf(sgB64), new TextEncoder().encode(message)); }
   catch(e){ return false; }
 }
 
@@ -813,8 +819,9 @@ async function buildLink(d){
     try {
       payload.sg = await ecdsaSign(msg, pk);
       if(!payload.sg){ sigState = 'unsigned'; }
-      // "signed" only if the signature actually verifies with the gallery PUBLIC key
-      else { sigState = (await verifiesWithGallery(msg, payload.sg)) ? 'signed' : 'mismatch'; }
+      else if(!ARTIST_KEYS[d.ini]){ sigState = 'nokey'; }       // this artist isn't registered
+      // "signed" only if the signature verifies with THIS artist's registered public key
+      else { sigState = (await verifiesWithArtist(msg, payload.sg, d.ini)) ? 'signed' : 'mismatch'; }
     }
     catch(e){ sigState = 'error'; }                    // invalid private key
   }
@@ -835,16 +842,18 @@ async function refreshQR(){
        colorDark:'#000000', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.M});
   const ss = $('sigstatus');
   if(ss){
+    const ini = $('initials').value || '?';
     const map = { signed:['✓ '+T_SIG[LANG].signed,'#2f5d3a'], unsigned:['• '+T_SIG[LANG].unsigned,'#8a5a1c'],
+                  nokey:['⚠ '+T_SIG[LANG].nokey+' ('+ini+')','#7c2d2d'],
                   mismatch:['⚠ '+T_SIG[LANG].mismatch,'#7c2d2d'], error:['⚠ '+T_SIG[LANG].error,'#7c2d2d'] };
     const [txt,col] = map[sigState] || map.unsigned;
     ss.textContent = txt; ss.style.color = col;
   }
 }
 const T_SIG = {
-  en:{signed:'Signed (verifies)', unsigned:'Unsigned (no key)', mismatch:'Key ≠ gallery public key — won’t verify', error:'Invalid signing key'},
-  uk:{signed:'Підписано (перевіряється)', unsigned:'Без підпису (немає ключа)', mismatch:'Ключ ≠ публічний ключ галереї — не пройде перевірку', error:'Невірний ключ підпису'},
-  sk:{signed:'Podpísané (overené)', unsigned:'Bez podpisu (žiadny kľúč)', mismatch:'Kľúč ≠ verejný kľúč galérie — neoverí sa', error:'Neplatný podpisový kľúč'}
+  en:{signed:'Signed (verifies)', unsigned:'Unsigned (no key)', nokey:'Artist not registered', mismatch:'Key ≠ this artist’s registered key — won’t verify', error:'Invalid signing key'},
+  uk:{signed:'Підписано (перевіряється)', unsigned:'Без підпису (немає ключа)', nokey:'Художника не зареєстровано', mismatch:'Ключ ≠ зареєстрований ключ художника — не пройде', error:'Невірний ключ підпису'},
+  sk:{signed:'Podpísané (overené)', unsigned:'Bez podpisu (žiadny kľúč)', nokey:'Umelec nie je registrovaný', mismatch:'Kľúč ≠ registrovaný kľúč umelca — neoverí sa', error:'Neplatný podpisový kľúč'}
 };
 function onKeyInput(){
   if($('remember') && $('remember').checked){ try{ localStorage.setItem('artcoa_pk', $('secret').value); }catch(e){} }
