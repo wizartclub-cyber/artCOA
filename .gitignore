@@ -3,3 +3,5 @@
 SmaltaArtGallery.JPEG
 # PRIVATE signing key — must never be committed
 gallery-private-key.txt
+# local-only chat log (may reference config; kept out of git)
+chat.md
